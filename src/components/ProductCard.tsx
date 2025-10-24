@@ -8,6 +8,7 @@ export interface Product {
   price: number;
   category: string;
   image: string;
+  details?: string;
 }
 
 interface ProductCardProps {
@@ -29,7 +30,10 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {product.category}
         </div>
-        <h3 className="mb-2 font-semibold text-foreground text-lg">{product.name}</h3>
+        <h3 className="mb-1 font-semibold text-foreground text-lg">{product.name}</h3>
+        {product.details && (
+          <p className="mb-2 text-sm text-muted-foreground">{product.details}</p>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-primary">
             ${product.price.toFixed(2)}

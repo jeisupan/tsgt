@@ -2,65 +2,79 @@ import { useState } from "react";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
 import { CategoryFilter } from "@/components/CategoryFilter";
+import { Fuel } from "lucide-react";
 import { toast } from "sonner";
+import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
+import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
+import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
+import gasRegulator from "@/assets/gas-regulator.jpg";
+import gasHose from "@/assets/gas-hose.jpg";
 
-// Sample products data
+// Gas station products data
 const PRODUCTS: Product[] = [
   {
     id: "1",
-    name: "Classic Burger",
-    price: 12.99,
-    category: "Food",
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop",
+    name: "LPG Cylinder - 45kg",
+    price: 89.99,
+    category: "Cylinders",
+    details: "Commercial grade, full refill",
+    image: gasCylinderLarge,
   },
   {
     id: "2",
-    name: "Caesar Salad",
-    price: 9.99,
-    category: "Food",
-    image: "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&h=400&fit=crop",
+    name: "LPG Cylinder - 15kg",
+    price: 34.99,
+    category: "Cylinders",
+    details: "Standard household size",
+    image: gasCylinderLarge,
   },
   {
     id: "3",
-    name: "Cappuccino",
-    price: 4.99,
-    category: "Beverages",
-    image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=400&fit=crop",
+    name: "LPG Cylinder - 12kg",
+    price: 28.99,
+    category: "Cylinders",
+    details: "Medium household size",
+    image: gasCylinderMedium,
   },
   {
     id: "4",
-    name: "Fresh Juice",
-    price: 5.99,
-    category: "Beverages",
-    image: "https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=400&fit=crop",
+    name: "LPG Cylinder - 5kg",
+    price: 15.99,
+    category: "Cylinders",
+    details: "Portable camping size",
+    image: gasCylinderSmall,
   },
   {
     id: "5",
-    name: "Pasta Carbonara",
-    price: 14.99,
-    category: "Food",
-    image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=400&fit=crop",
+    name: "Gas Regulator",
+    price: 24.99,
+    category: "Accessories",
+    details: "Universal fit, safety certified",
+    image: gasRegulator,
   },
   {
     id: "6",
-    name: "Chocolate Cake",
-    price: 6.99,
-    category: "Desserts",
-    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=400&fit=crop",
+    name: "Gas Hose - 2m",
+    price: 12.99,
+    category: "Accessories",
+    details: "Flexible rubber hose",
+    image: gasHose,
   },
   {
     id: "7",
-    name: "Iced Latte",
-    price: 5.49,
-    category: "Beverages",
-    image: "https://images.unsplash.com/photo-1517487881594-2787fef5ebf7?w=400&h=400&fit=crop",
+    name: "Cylinder Refill",
+    price: 19.99,
+    category: "Services",
+    details: "Refill your empty cylinder",
+    image: gasCylinderMedium,
   },
   {
     id: "8",
-    name: "Pizza Margherita",
-    price: 16.99,
-    category: "Food",
-    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=400&fit=crop",
+    name: "Cylinder Exchange",
+    price: 29.99,
+    category: "Services",
+    details: "Exchange empty for full",
+    image: gasCylinderLarge,
   },
 ];
 
@@ -124,10 +138,17 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card shadow-sm">
         <div className="container mx-auto px-6 py-6">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Point of Sale
-          </h1>
-          <p className="text-muted-foreground mt-2">Modern POS System</p>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-secondary">
+              <Fuel className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Gas Refill Station
+              </h1>
+              <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
+            </div>
+          </div>
         </div>
       </header>
 
