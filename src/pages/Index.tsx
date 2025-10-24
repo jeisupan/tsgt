@@ -2,8 +2,11 @@ import { useState } from "react";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
 import { CategoryFilter } from "@/components/CategoryFilter";
-import { Fuel } from "lucide-react";
+import { OrderHistory } from "@/components/OrderHistory";
+import { Fuel, Receipt } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
 import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
 import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
@@ -81,6 +84,7 @@ const PRODUCTS: Product[] = [
 const Index = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showHistory, setShowHistory] = useState(false);
 
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
 
@@ -122,65 +126,118 @@ const Index = () => {
     }
   };
 
-  const handleCheckout = () => {
-    const total = cartItems.reduce(
+  const handleCheckout = async () => {
+    const subtotal = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = total * 0.1;
-    const finalTotal = total + tax;
+    const tax = subtotal * 0.1;
+    const total = subtotal + tax;
 
-    toast.success(`Order completed! Total: $${finalTotal.toFixed(2)}`);
-    setCartItems([]);
+    try {
+      // Generate order number
+      const orderNumber = `ORD${Date.now().toString().slice(-8)}`;
+
+      // Insert order
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          order_number: orderNumber,
+          subtotal: subtotal,
+          tax: tax,
+          total: total,
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Insert order items
+      const orderItems = cartItems.map((item) => ({
+        order_id: orderData.id,
+        product_id: item.id,
+        product_name: item.name,
+        product_category: PRODUCTS.find((p) => p.id === item.id)?.category || "Unknown",
+        price: item.price,
+        quantity: item.quantity,
+        line_total: item.price * item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      toast.success(`Order #${orderNumber} completed! Total: $${total.toFixed(2)}`);
+      setCartItems([]);
+    } catch (error: any) {
+      console.error("Error saving order:", error);
+      toast.error("Failed to save order. Please try again.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card shadow-sm">
         <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-secondary">
-              <Fuel className="h-8 w-8 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-secondary">
+                <Fuel className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Gas Refill Station
+                </h1>
+                <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Gas Refill Station
-              </h1>
-              <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
-            </div>
+            <Button
+              variant={showHistory ? "default" : "outline"}
+              onClick={() => setShowHistory(!showHistory)}
+              className="gap-2"
+            >
+              <Receipt className="h-5 w-5" />
+              {showHistory ? "Back to POS" : "Order History"}
+            </Button>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-[1fr_400px] gap-8">
-          <div className="space-y-6">
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
+        {showHistory ? (
+          <OrderHistory />
+        ) : (
+          <div className="grid lg:grid-cols-[1fr_400px] gap-8">
+            <div className="space-y-6">
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:sticky lg:top-8 h-fit">
+              <Cart
+                items={cartItems}
+                onUpdateQuantity={handleUpdateQuantity}
+                onRemoveItem={handleRemoveItem}
+                onCheckout={handleCheckout}
+              />
             </div>
           </div>
-
-          <div className="lg:sticky lg:top-8 h-fit">
-            <Cart
-              items={cartItems}
-              onUpdateQuantity={handleUpdateQuantity}
-              onRemoveItem={handleRemoveItem}
-              onCheckout={handleCheckout}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
