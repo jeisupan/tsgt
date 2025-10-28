@@ -3,7 +3,8 @@ import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { OrderHistory } from "@/components/OrderHistory";
-import { Fuel, Receipt } from "lucide-react";
+import { InventoryManagement } from "@/components/InventoryManagement";
+import { Fuel, Receipt, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,8 +14,8 @@ import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
 import gasRegulator from "@/assets/gas-regulator.jpg";
 import gasHose from "@/assets/gas-hose.jpg";
 
-// Gas station products data
-const PRODUCTS: Product[] = [
+// Gas station products data - exported for inventory component
+export const PRODUCTS: Product[] = [
   {
     id: "1",
     name: "LPG Cylinder - 45kg",
@@ -85,6 +86,7 @@ const Index = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showHistory, setShowHistory] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
 
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
 
@@ -169,6 +171,32 @@ const Index = () => {
 
       if (itemsError) throw itemsError;
 
+      // Create outbound transactions for each item (sale) and update inventory
+      for (const item of cartItems) {
+        // Insert outbound transaction
+        await supabase.from("outbound_transactions").insert({
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          transaction_type: "sale",
+          order_id: orderData.id,
+        });
+
+        // Update inventory
+        const { data: inventoryData } = await supabase
+          .from("inventory")
+          .select("current_stock")
+          .eq("product_id", item.id)
+          .single();
+
+        if (inventoryData) {
+          await supabase
+            .from("inventory")
+            .update({ current_stock: inventoryData.current_stock - item.quantity })
+            .eq("product_id", item.id);
+        }
+      }
+
       toast.success(`Order #${orderNumber} completed! Total: $${total.toFixed(2)}`);
       setCartItems([]);
     } catch (error: any) {
@@ -193,20 +221,38 @@ const Index = () => {
                 <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
               </div>
             </div>
-            <Button
-              variant={showHistory ? "default" : "outline"}
-              onClick={() => setShowHistory(!showHistory)}
-              className="gap-2"
-            >
-              <Receipt className="h-5 w-5" />
-              {showHistory ? "Back to POS" : "Order History"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant={showInventory ? "default" : "outline"}
+                onClick={() => {
+                  setShowInventory(!showInventory);
+                  setShowHistory(false);
+                }}
+                className="gap-2"
+              >
+                <Package className="h-5 w-5" />
+                {showInventory ? "Back to POS" : "Inventory"}
+              </Button>
+              <Button
+                variant={showHistory ? "default" : "outline"}
+                onClick={() => {
+                  setShowHistory(!showHistory);
+                  setShowInventory(false);
+                }}
+                className="gap-2"
+              >
+                <Receipt className="h-5 w-5" />
+                {showHistory ? "Back to POS" : "Order History"}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        {showHistory ? (
+        {showInventory ? (
+          <InventoryManagement />
+        ) : showHistory ? (
           <OrderHistory />
         ) : (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
