@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { History, Receipt } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { History, Receipt, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -26,6 +30,8 @@ interface OrderItem {
 export const OrderHistory = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [editedItems, setEditedItems] = useState<OrderItem[]>([]);
 
   useEffect(() => {
     fetchOrders();
@@ -65,6 +71,91 @@ export const OrderHistory = () => {
       toast.error("Failed to load order history");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (orderId: string) => {
+    if (!confirm("Are you sure you want to delete this order?")) return;
+
+    try {
+      // Delete order items first
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (itemsError) throw itemsError;
+
+      // Delete the order
+      const { error: orderError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+
+      if (orderError) throw orderError;
+
+      toast.success("Order deleted successfully");
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Error deleting order:", error);
+      toast.error("Failed to delete order");
+    }
+  };
+
+  const handleEditClick = (order: Order) => {
+    setEditingOrder(order);
+    setEditedItems([...order.order_items]);
+  };
+
+  const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
+    const updated = [...editedItems];
+    updated[index] = { ...updated[index], [field]: value };
+    
+    if (field === "quantity" || field === "price") {
+      updated[index].line_total = Number(updated[index].quantity) * Number(updated[index].price);
+    }
+    
+    setEditedItems(updated);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingOrder) return;
+
+    try {
+      // Calculate new totals
+      const subtotal = editedItems.reduce((sum, item) => sum + Number(item.line_total), 0);
+      const tax = subtotal * 0.13;
+      const total = subtotal + tax;
+
+      // Update order totals
+      const { error: orderError } = await supabase
+        .from("orders")
+        .update({ subtotal, tax, total })
+        .eq("id", editingOrder.id);
+
+      if (orderError) throw orderError;
+
+      // Update each order item
+      for (const item of editedItems) {
+        const { error: itemError } = await supabase
+          .from("order_items")
+          .update({
+            quantity: item.quantity,
+            price: item.price,
+            line_total: item.line_total,
+          })
+          .eq("order_id", editingOrder.id)
+          .eq("product_name", item.product_name);
+
+        if (itemError) throw itemError;
+      }
+
+      toast.success("Order updated successfully");
+      setEditingOrder(null);
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Error updating order:", error);
+      toast.error("Failed to update order");
     }
   };
 
@@ -109,13 +200,33 @@ export const OrderHistory = () => {
                     {format(new Date(order.created_at), "MMM dd, yyyy - h:mm a")}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-primary">
-                    ${Number(order.total).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Tax: ${Number(order.tax).toFixed(2)}
-                  </p>
+                <div className="flex items-start gap-4">
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-primary">
+                      ${Number(order.total).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Tax: ${Number(order.tax).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditClick(order)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(order.id)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -135,6 +246,94 @@ export const OrderHistory = () => {
           ))}
         </div>
       </ScrollArea>
+
+      <Dialog open={!!editingOrder} onOpenChange={() => setEditingOrder(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Edit Order #{editingOrder?.order_number}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {editedItems.map((item, index) => (
+              <Card key={index} className="p-4">
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-semibold">{item.product_name}</Label>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <Label htmlFor={`quantity-${index}`} className="text-xs">Quantity</Label>
+                      <Input
+                        id={`quantity-${index}`}
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, "quantity", parseInt(e.target.value) || 1)}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor={`price-${index}`} className="text-xs">Price</Label>
+                      <Input
+                        id={`price-${index}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) => handleItemChange(index, "price", parseFloat(e.target.value) || 0)}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Line Total</Label>
+                      <div className="mt-1 h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">
+                        ${Number(item.line_total).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            
+            <Card className="p-4 bg-muted/50">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span className="font-semibold">
+                    ${editedItems.reduce((sum, item) => sum + Number(item.line_total), 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tax (13%):</span>
+                  <span className="font-semibold">
+                    ${(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 0.13).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <span>Total:</span>
+                  <span className="text-primary">
+                    ${(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 1.13).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingOrder(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
