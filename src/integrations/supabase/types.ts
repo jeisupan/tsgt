@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      inbound_transactions: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string
+          product_name: string
+          quantity: number
+          supplier: string | null
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          product_name: string
+          quantity: number
+          supplier?: string | null
+          transaction_type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          supplier?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          created_at: string
+          current_stock: number
+          id: string
+          min_stock_level: number | null
+          product_category: string
+          product_id: string
+          product_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_stock?: number
+          id?: string
+          min_stock_level?: number | null
+          product_category: string
+          product_id: string
+          product_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_stock?: number
+          id?: string
+          min_stock_level?: number | null
+          product_category?: string
+          product_id?: string
+          product_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -84,6 +150,50 @@ export type Database = {
           total?: number
         }
         Relationships: []
+      }
+      outbound_transactions: {
+        Row: {
+          created_at: string
+          destination: string | null
+          id: string
+          notes: string | null
+          order_id: string | null
+          product_id: string
+          product_name: string
+          quantity: number
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          destination?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          product_id: string
+          product_name: string
+          quantity: number
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outbound_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
