@@ -4,7 +4,8 @@ import { Cart, CartItem } from "@/components/Cart";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { OrderHistory } from "@/components/OrderHistory";
 import { InventoryManagement } from "@/components/InventoryManagement";
-import { Fuel, Receipt, Package } from "lucide-react";
+import { CustomerManagement } from "@/components/CustomerManagement";
+import { Fuel, Receipt, Package, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +88,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showHistory, setShowHistory] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
+  const [showCustomers, setShowCustomers] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number>>({});
 
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
@@ -260,6 +262,7 @@ const Index = () => {
                 onClick={() => {
                   setShowInventory(!showInventory);
                   setShowHistory(false);
+                  setShowCustomers(false);
                 }}
                 className="gap-2"
               >
@@ -271,11 +274,24 @@ const Index = () => {
                 onClick={() => {
                   setShowHistory(!showHistory);
                   setShowInventory(false);
+                  setShowCustomers(false);
                 }}
                 className="gap-2"
               >
                 <Receipt className="h-5 w-5" />
                 {showHistory ? "Back to POS" : "Order History"}
+              </Button>
+              <Button
+                variant={showCustomers ? "default" : "outline"}
+                onClick={() => {
+                  setShowCustomers(!showCustomers);
+                  setShowInventory(false);
+                  setShowHistory(false);
+                }}
+                className="gap-2"
+              >
+                <Users className="h-5 w-5" />
+                {showCustomers ? "Back to POS" : "Customers"}
               </Button>
             </div>
           </div>
@@ -287,6 +303,8 @@ const Index = () => {
           <InventoryManagement />
         ) : showHistory ? (
           <OrderHistory />
+        ) : showCustomers ? (
+          <CustomerManagement />
         ) : (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
