@@ -1,8 +1,13 @@
-import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ShoppingCart, Trash2, Plus, Minus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { CustomerDialog } from "@/components/CustomerDialog";
+import { toast } from "sonner";
 
 export interface CartItem {
   id: string;
@@ -11,17 +16,56 @@ export interface CartItem {
   quantity: number;
 }
 
+interface Customer {
+  id: string;
+  name: string;
+}
+
 interface CartProps {
   items: CartItem[];
   onUpdateQuantity: (id: string, quantity: number) => void;
   onRemoveItem: (id: string) => void;
-  onCheckout: () => void;
+  onCheckout: (customerId: string) => void;
 }
 
 export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [showCustomerDialog, setShowCustomerDialog] = useState(false);
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.1; // 10% tax
+  const tax = subtotal * 0.12; // 12% tax
   const total = subtotal + tax;
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id, name")
+      .order("name");
+    
+    if (error) {
+      console.error("Error fetching customers:", error);
+      return;
+    }
+    setCustomers(data || []);
+  };
+
+  const handleCheckout = () => {
+    if (!selectedCustomerId) {
+      toast.error("Please select a customer before checkout");
+      return;
+    }
+    onCheckout(selectedCustomerId);
+    setSelectedCustomerId("");
+  };
+
+  const handleCustomerAdded = () => {
+    fetchCustomers();
+  };
 
   return (
     <Card className="flex flex-col h-full border-border bg-card shadow-[var(--shadow-card)]">
@@ -47,7 +91,7 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground">{item.name}</h3>
                   <p className="text-sm text-muted-foreground">
-                    ${item.price.toFixed(2)} each
+                    ₱{item.price.toFixed(2)} each
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -80,7 +124,7 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                   </Button>
                 </div>
                 <div className="font-bold text-foreground min-w-[80px] text-right">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  ₱{(item.price * item.quantity).toFixed(2)}
                 </div>
               </div>
             ))}
@@ -89,29 +133,63 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
       </ScrollArea>
 
       <div className="p-6 border-t border-border space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Customer *
+            </label>
+            <div className="flex gap-2">
+              <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => setShowCustomerDialog(true)}
+                title="Add new customer"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <Separator />
           <div className="flex justify-between text-muted-foreground">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>₱{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
-            <span>Tax (10%)</span>
-            <span>${tax.toFixed(2)}</span>
+            <span>Tax (12%)</span>
+            <span>₱{tax.toFixed(2)}</span>
           </div>
           <Separator />
           <div className="flex justify-between text-xl font-bold text-foreground">
             <span>Total</span>
-            <span className="text-primary">${total.toFixed(2)}</span>
+            <span className="text-primary">₱{total.toFixed(2)}</span>
           </div>
         </div>
         <Button
           className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-accent to-[hsl(140,75%,50%)] hover:shadow-lg transition-all"
-          disabled={items.length === 0}
-          onClick={onCheckout}
+          disabled={items.length === 0 || !selectedCustomerId}
+          onClick={handleCheckout}
         >
           Complete Order
         </Button>
       </div>
+
+      <CustomerDialog
+        open={showCustomerDialog}
+        onOpenChange={setShowCustomerDialog}
+        onCustomerAdded={handleCustomerAdded}
+      />
     </Card>
   );
 };

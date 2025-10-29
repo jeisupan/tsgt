@@ -203,10 +203,10 @@ export const OrderHistory = () => {
                 <div className="flex items-start gap-4">
                   <div className="text-right">
                     <p className="text-2xl font-bold text-primary">
-                      ${Number(order.total).toFixed(2)}
+                      ₱{Number(order.total).toFixed(2)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Tax: ${Number(order.tax).toFixed(2)}
+                      Tax: ₱{Number(order.tax).toFixed(2)}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -237,7 +237,7 @@ export const OrderHistory = () => {
                       {item.quantity}x {item.product_name}
                     </span>
                     <span className="font-semibold text-foreground">
-                      ${Number(item.line_total).toFixed(2)}
+                      ₱{Number(item.line_total).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -292,7 +292,7 @@ export const OrderHistory = () => {
                     <div>
                       <Label className="text-xs">Line Total</Label>
                       <div className="mt-1 h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">
-                        ${Number(item.line_total).toFixed(2)}
+                        ₱{Number(item.line_total).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -305,19 +305,19 @@ export const OrderHistory = () => {
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
                   <span className="font-semibold">
-                    ${editedItems.reduce((sum, item) => sum + Number(item.line_total), 0).toFixed(2)}
+                    ₱{editedItems.reduce((sum, item) => sum + Number(item.line_total), 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tax (13%):</span>
+                  <span>Tax (12%):</span>
                   <span className="font-semibold">
-                    ${(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 0.13).toFixed(2)}
+                    ₱{(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 0.12).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Total:</span>
                   <span className="text-primary">
-                    ${(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 1.13).toFixed(2)}
+                    ₱{(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 1.12).toFixed(2)}
                   </span>
                 </div>
               </div>

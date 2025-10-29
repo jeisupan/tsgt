@@ -14,21 +14,34 @@ export interface Product {
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
+  availableStock?: number;
 }
 
-export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+export const ProductCard = ({ product, onAddToCart, availableStock = 0 }: ProductCardProps) => {
+  const isOutOfStock = availableStock <= 0;
+  
   return (
-    <Card className="group cursor-pointer overflow-hidden border-border bg-card transition-all duration-300 hover:shadow-[var(--shadow-hover)]">
-      <div className="aspect-square overflow-hidden bg-muted">
+    <Card className={`group cursor-pointer overflow-hidden border-border bg-card transition-all duration-300 hover:shadow-[var(--shadow-hover)] ${isOutOfStock ? 'opacity-60' : ''}`}>
+      <div className="aspect-square overflow-hidden bg-muted relative">
         <img
           src={product.image}
           alt={product.name}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">OUT OF STOCK</span>
+          </div>
+        )}
       </div>
       <div className="p-4">
-        <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {product.category}
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            {product.category}
+          </span>
+          <span className={`text-xs font-medium ${isOutOfStock ? 'text-destructive' : 'text-accent'}`}>
+            Stock: {availableStock}
+          </span>
         </div>
         <h3 className="mb-1 font-semibold text-foreground text-lg">{product.name}</h3>
         {product.details && (
@@ -36,12 +49,13 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         )}
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-primary">
-            ${product.price.toFixed(2)}
+            ₱{product.price.toFixed(2)}
           </span>
           <Button
             size="icon"
             className="rounded-full bg-gradient-to-br from-primary to-secondary hover:shadow-lg transition-all"
             onClick={() => onAddToCart(product)}
+            disabled={isOutOfStock}
           >
             <Plus className="h-5 w-5" />
           </Button>

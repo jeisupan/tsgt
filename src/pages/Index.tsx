@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
 import { CategoryFilter } from "@/components/CategoryFilter";
@@ -87,8 +87,26 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showHistory, setShowHistory] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
+  const [inventory, setInventory] = useState<Record<string, number>>({});
 
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const fetchInventory = async () => {
+    const { data, error } = await supabase.from("inventory").select("product_id, current_stock");
+    if (error) {
+      console.error("Error fetching inventory:", error);
+      return;
+    }
+    const inventoryMap: Record<string, number> = {};
+    data.forEach((item) => {
+      inventoryMap[item.product_id] = item.current_stock;
+    });
+    setInventory(inventoryMap);
+  };
 
   const filteredProducts =
     selectedCategory === "All"
@@ -96,6 +114,19 @@ const Index = () => {
       : PRODUCTS.filter((p) => p.category === selectedCategory);
 
   const handleAddToCart = (product: Product) => {
+    const availableStock = inventory[product.id] || 0;
+    const currentQuantityInCart = cartItems.find((item) => item.id === product.id)?.quantity || 0;
+    
+    if (availableStock <= 0) {
+      toast.error(`${product.name} is out of stock`);
+      return;
+    }
+    
+    if (currentQuantityInCart >= availableStock) {
+      toast.error(`Only ${availableStock} units available in stock`);
+      return;
+    }
+
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -128,12 +159,12 @@ const Index = () => {
     }
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (customerId: string) => {
     const subtotal = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subtotal * 0.1;
+    const tax = subtotal * 0.12; // 12% tax
     const total = subtotal + tax;
 
     try {
@@ -148,6 +179,7 @@ const Index = () => {
           subtotal: subtotal,
           tax: tax,
           total: total,
+          customer_id: customerId,
         })
         .select()
         .single();
@@ -197,8 +229,9 @@ const Index = () => {
         }
       }
 
-      toast.success(`Order #${orderNumber} completed! Total: $${total.toFixed(2)}`);
+      toast.success(`Order #${orderNumber} completed! Total: ₱${total.toFixed(2)}`);
       setCartItems([]);
+      fetchInventory(); // Refresh inventory after checkout
     } catch (error: any) {
       console.error("Error saving order:", error);
       toast.error("Failed to save order. Please try again.");
@@ -269,6 +302,7 @@ const Index = () => {
                     key={product.id}
                     product={product}
                     onAddToCart={handleAddToCart}
+                    availableStock={inventory[product.id] || 0}
                   />
                 ))}
               </div>

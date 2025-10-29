@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inbound_transactions: {
         Row: {
           created_at: string
@@ -127,6 +157,7 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          customer_id: string | null
           id: string
           order_number: string
           subtotal: number
@@ -135,6 +166,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          customer_id?: string | null
           id?: string
           order_number: string
           subtotal: number
@@ -143,13 +175,22 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          customer_id?: string | null
           id?: string
           order_number?: string
           subtotal?: number
           tax?: number
           total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       outbound_transactions: {
         Row: {
