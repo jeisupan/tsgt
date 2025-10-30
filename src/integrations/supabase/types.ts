@@ -110,6 +110,54 @@ export type Database = {
         }
         Relationships: []
       }
+      operations_expense: {
+        Row: {
+          amount: number
+          branch: string
+          category: string
+          created_at: string
+          date: string
+          encoder: string
+          id: string
+          particulars: string
+          plate_number: string | null
+          remarks: string | null
+          updated_at: string
+          voucher_number: string
+          voucher_type: string
+        }
+        Insert: {
+          amount: number
+          branch: string
+          category: string
+          created_at?: string
+          date: string
+          encoder: string
+          id?: string
+          particulars: string
+          plate_number?: string | null
+          remarks?: string | null
+          updated_at?: string
+          voucher_number: string
+          voucher_type: string
+        }
+        Update: {
+          amount?: number
+          branch?: string
+          category?: string
+          created_at?: string
+          date?: string
+          encoder?: string
+          id?: string
+          particulars?: string
+          plate_number?: string | null
+          remarks?: string | null
+          updated_at?: string
+          voucher_number?: string
+          voucher_type?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -235,6 +283,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          tin_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          tin_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          tin_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

@@ -7,78 +7,81 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface Customer {
+interface Supplier {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
   address: string | null;
+  tin_number: string | null;
 }
 
-interface CustomerDialogProps {
+interface SupplierDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCustomerAdded: () => void;
-  editingCustomer?: Customer | null;
+  onSupplierAdded: () => void;
+  editingSupplier?: Supplier | null;
 }
 
-export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCustomer }: CustomerDialogProps) => {
+export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSupplier }: SupplierDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
+    tin_number: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update form when editing customer changes
+  // Update form when editing supplier changes
   useEffect(() => {
-    if (editingCustomer) {
+    if (editingSupplier) {
       setFormData({
-        name: editingCustomer.name,
-        email: editingCustomer.email || "",
-        phone: editingCustomer.phone || "",
-        address: editingCustomer.address || "",
+        name: editingSupplier.name,
+        email: editingSupplier.email || "",
+        phone: editingSupplier.phone || "",
+        address: editingSupplier.address || "",
+        tin_number: editingSupplier.tin_number || "",
       });
     } else {
-      setFormData({ name: "", email: "", phone: "", address: "" });
+      setFormData({ name: "", email: "", phone: "", address: "", tin_number: "" });
     }
-  }, [editingCustomer]);
+  }, [editingSupplier]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      toast.error("Customer name is required");
+      toast.error("Supplier name is required");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      if (editingCustomer) {
-        // Update existing customer
+      if (editingSupplier) {
+        // Update existing supplier
         const { error } = await supabase
-          .from("customers")
+          .from("suppliers")
           .update(formData)
-          .eq("id", editingCustomer.id);
+          .eq("id", editingSupplier.id);
 
         if (error) throw error;
-        toast.success("Customer updated successfully");
+        toast.success("Supplier updated successfully");
       } else {
-        // Create new customer
-        const { error } = await supabase.from("customers").insert([formData]);
+        // Create new supplier
+        const { error } = await supabase.from("suppliers").insert([formData]);
 
         if (error) throw error;
-        toast.success("Customer added successfully");
+        toast.success("Supplier added successfully");
       }
 
-      setFormData({ name: "", email: "", phone: "", address: "" });
-      onCustomerAdded();
+      setFormData({ name: "", email: "", phone: "", address: "", tin_number: "" });
+      onSupplierAdded();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving customer:", error);
-      toast.error(`Failed to ${editingCustomer ? "update" : "add"} customer`);
+      console.error("Error saving supplier:", error);
+      toast.error(`Failed to ${editingSupplier ? "update" : "add"} supplier`);
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +91,7 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{editingCustomer ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+          <DialogTitle>{editingSupplier ? "Edit Supplier" : "Add New Supplier"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -97,8 +100,17 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter customer name"
+              placeholder="Enter supplier name"
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tin_number">TIN Number</Label>
+            <Input
+              id="tin_number"
+              value={formData.tin_number}
+              onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
+              placeholder="Enter TIN number"
             />
           </div>
           <div className="space-y-2">
@@ -136,8 +148,8 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting 
-                ? (editingCustomer ? "Updating..." : "Adding...") 
-                : (editingCustomer ? "Update Customer" : "Add Customer")
+                ? (editingSupplier ? "Updating..." : "Adding...") 
+                : (editingSupplier ? "Update Supplier" : "Add Supplier")
               }
             </Button>
           </div>

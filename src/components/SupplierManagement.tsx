@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CustomerDialog } from "@/components/CustomerDialog";
+import { SupplierDialog } from "@/components/SupplierDialog";
 import { toast } from "sonner";
 import {
   Table,
@@ -13,89 +13,91 @@ import {
 } from "@/components/ui/table";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
 
-interface Customer {
+interface Supplier {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
   address: string | null;
+  tin_number: string | null;
   created_at: string;
 }
 
-export const CustomerManagement = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+export const SupplierManagement = () => {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
-  const fetchCustomers = async () => {
+  const fetchSuppliers = async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from("customers")
+        .from("suppliers")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCustomers(data || []);
+      setSuppliers(data || []);
     } catch (error) {
-      console.error("Error fetching customers:", error);
-      toast.error("Failed to load customers");
+      console.error("Error fetching suppliers:", error);
+      toast.error("Failed to load suppliers");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCustomers();
+    fetchSuppliers();
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
+    if (!confirm("Are you sure you want to delete this supplier?")) return;
 
     try {
-      const { error } = await supabase.from("customers").delete().eq("id", id);
+      const { error } = await supabase.from("suppliers").delete().eq("id", id);
 
       if (error) throw error;
 
-      toast.success("Customer deleted successfully");
-      fetchCustomers();
+      toast.success("Supplier deleted successfully");
+      fetchSuppliers();
     } catch (error) {
-      console.error("Error deleting customer:", error);
-      toast.error("Failed to delete customer");
+      console.error("Error deleting supplier:", error);
+      toast.error("Failed to delete supplier");
     }
   };
 
-  const handleEdit = (customer: Customer) => {
-    setEditingCustomer(customer);
+  const handleEdit = (supplier: Supplier) => {
+    setEditingSupplier(supplier);
     setIsDialogOpen(true);
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
-    setEditingCustomer(null);
+    setEditingSupplier(null);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Customer Management</h2>
+        <h2 className="text-2xl font-bold">Supplier Management</h2>
         <Button onClick={() => setIsDialogOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
-          Add Customer
+          Add Supplier
         </Button>
       </div>
 
       {isLoading ? (
-        <p>Loading customers...</p>
-      ) : customers.length === 0 ? (
-        <p className="text-muted-foreground">No customers found. Add your first customer!</p>
+        <p>Loading suppliers...</p>
+      ) : suppliers.length === 0 ? (
+        <p className="text-muted-foreground">No suppliers found. Add your first supplier!</p>
       ) : (
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>TIN Number</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Address</TableHead>
@@ -103,25 +105,26 @@ export const CustomerManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {customers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">{customer.name}</TableCell>
-                  <TableCell>{customer.email || "-"}</TableCell>
-                  <TableCell>{customer.phone || "-"}</TableCell>
-                  <TableCell>{customer.address || "-"}</TableCell>
+              {suppliers.map((supplier) => (
+                <TableRow key={supplier.id}>
+                  <TableCell className="font-medium">{supplier.name}</TableCell>
+                  <TableCell>{supplier.tin_number || "-"}</TableCell>
+                  <TableCell>{supplier.email || "-"}</TableCell>
+                  <TableCell>{supplier.phone || "-"}</TableCell>
+                  <TableCell>{supplier.address || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleEdit(customer)}
+                        onClick={() => handleEdit(supplier)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(customer.id)}
+                        onClick={() => handleDelete(supplier.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -134,11 +137,11 @@ export const CustomerManagement = () => {
         </div>
       )}
 
-      <CustomerDialog
+      <SupplierDialog
         open={isDialogOpen}
         onOpenChange={handleDialogClose}
-        onCustomerAdded={fetchCustomers}
-        editingCustomer={editingCustomer}
+        onSupplierAdded={fetchSuppliers}
+        editingSupplier={editingSupplier}
       />
     </div>
   );

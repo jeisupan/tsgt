@@ -5,7 +5,9 @@ import { CategoryFilter } from "@/components/CategoryFilter";
 import { OrderHistory } from "@/components/OrderHistory";
 import { InventoryManagement } from "@/components/InventoryManagement";
 import { CustomerManagement } from "@/components/CustomerManagement";
-import { Fuel, Receipt, Package, Users } from "lucide-react";
+import { SupplierManagement } from "@/components/SupplierManagement";
+import { OperationsExpense } from "@/components/OperationsExpense";
+import { Fuel, Receipt, Package, Users, Truck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,6 +91,8 @@ const Index = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
   const [showCustomers, setShowCustomers] = useState(false);
+  const [showSuppliers, setShowSuppliers] = useState(false);
+  const [showExpenses, setShowExpenses] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number>>({});
 
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
@@ -263,6 +267,8 @@ const Index = () => {
                   setShowInventory(!showInventory);
                   setShowHistory(false);
                   setShowCustomers(false);
+                  setShowSuppliers(false);
+                  setShowExpenses(false);
                 }}
                 className="gap-2"
               >
@@ -275,6 +281,8 @@ const Index = () => {
                   setShowHistory(!showHistory);
                   setShowInventory(false);
                   setShowCustomers(false);
+                  setShowSuppliers(false);
+                  setShowExpenses(false);
                 }}
                 className="gap-2"
               >
@@ -287,11 +295,41 @@ const Index = () => {
                   setShowCustomers(!showCustomers);
                   setShowInventory(false);
                   setShowHistory(false);
+                  setShowSuppliers(false);
+                  setShowExpenses(false);
                 }}
                 className="gap-2"
               >
                 <Users className="h-5 w-5" />
                 {showCustomers ? "Back to POS" : "Customers"}
+              </Button>
+              <Button
+                variant={showSuppliers ? "default" : "outline"}
+                onClick={() => {
+                  setShowSuppliers(!showSuppliers);
+                  setShowInventory(false);
+                  setShowHistory(false);
+                  setShowCustomers(false);
+                  setShowExpenses(false);
+                }}
+                className="gap-2"
+              >
+                <Truck className="h-5 w-5" />
+                {showSuppliers ? "Back to POS" : "Suppliers"}
+              </Button>
+              <Button
+                variant={showExpenses ? "default" : "outline"}
+                onClick={() => {
+                  setShowExpenses(!showExpenses);
+                  setShowInventory(false);
+                  setShowHistory(false);
+                  setShowCustomers(false);
+                  setShowSuppliers(false);
+                }}
+                className="gap-2"
+              >
+                <FileText className="h-5 w-5" />
+                {showExpenses ? "Back to POS" : "Expenses"}
               </Button>
             </div>
           </div>
@@ -305,6 +343,10 @@ const Index = () => {
           <OrderHistory />
         ) : showCustomers ? (
           <CustomerManagement />
+        ) : showSuppliers ? (
+          <SupplierManagement />
+        ) : showExpenses ? (
+          <OperationsExpense />
         ) : (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
