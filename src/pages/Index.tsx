@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import type { User } from "@supabase/supabase-js";
 import { ProductCard, Product } from "@/components/ProductCard";
 import { Cart, CartItem } from "@/components/Cart";
 import { CategoryFilter } from "@/components/CategoryFilter";
@@ -7,7 +9,7 @@ import { InventoryManagement } from "@/components/InventoryManagement";
 import { CustomerManagement } from "@/components/CustomerManagement";
 import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
-import { Fuel, Receipt, Package, Users, Truck, FileText } from "lucide-react";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +88,9 @@ export const PRODUCTS: Product[] = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showHistory, setShowHistory] = useState(false);
@@ -98,8 +103,34 @@ const Index = () => {
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
 
   useEffect(() => {
-    fetchInventory();
-  }, []);
+    // Check authentication status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        navigate("/auth");
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchInventory();
+    }
+  }, [user]);
 
   const fetchInventory = async () => {
     const { data, error } = await supabase.from("inventory").select("product_id, current_stock");
@@ -164,6 +195,22 @@ const Index = () => {
       toast.info(`Removed ${item.name} from cart`);
     }
   };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCheckout = async (customerId: string) => {
     const subtotal = cartItems.reduce(
@@ -260,7 +307,17 @@ const Index = () => {
                 <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground hidden md:inline">{user?.email}</span>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-2">{/* Navigation buttons remain below */}
+            
               <Button
                 variant={showInventory ? "default" : "outline"}
                 onClick={() => {
