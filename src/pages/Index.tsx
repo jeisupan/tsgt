@@ -9,10 +9,12 @@ import { InventoryManagement } from "@/components/InventoryManagement";
 import { CustomerManagement } from "@/components/CustomerManagement";
 import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
-import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut } from "lucide-react";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
+import { UserManagement } from "@/components/UserManagement";
 import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
 import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
 import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
@@ -91,6 +93,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { role, loading: roleLoading, hasAccess } = useUserRole();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showHistory, setShowHistory] = useState(false);
@@ -98,6 +101,7 @@ const Index = () => {
   const [showCustomers, setShowCustomers] = useState(false);
   const [showSuppliers, setShowSuppliers] = useState(false);
   const [showExpenses, setShowExpenses] = useState(false);
+  const [showUsers, setShowUsers] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number>>({});
 
   const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
@@ -201,12 +205,28 @@ const Index = () => {
     navigate("/auth");
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md p-8 bg-card rounded-lg shadow-lg">
+          <h2 className="text-2xl font-bold mb-4">No Role Assigned</h2>
+          <p className="text-muted-foreground mb-6">
+            Your account doesn't have a role assigned yet. Please contact your administrator to get access.
+          </p>
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
       </div>
     );
@@ -309,6 +329,9 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground hidden md:inline">{user?.email}</span>
+              <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                {role?.replace("_", " ").toUpperCase()}
+              </span>
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -318,83 +341,140 @@ const Index = () => {
           <div className="mt-4">
             <div className="flex flex-wrap gap-2">{/* Navigation buttons remain below */}
             
-              <Button
-                variant={showInventory ? "default" : "outline"}
-                onClick={() => {
-                  setShowInventory(!showInventory);
-                  setShowHistory(false);
-                  setShowCustomers(false);
-                  setShowSuppliers(false);
-                  setShowExpenses(false);
-                }}
-                className="gap-2"
-              >
-                <Package className="h-5 w-5" />
-                {showInventory ? "Back to POS" : "Inventory"}
-              </Button>
-              <Button
-                variant={showHistory ? "default" : "outline"}
-                onClick={() => {
-                  setShowHistory(!showHistory);
-                  setShowInventory(false);
-                  setShowCustomers(false);
-                  setShowSuppliers(false);
-                  setShowExpenses(false);
-                }}
-                className="gap-2"
-              >
-                <Receipt className="h-5 w-5" />
-                {showHistory ? "Back to POS" : "Order History"}
-              </Button>
-              <Button
-                variant={showCustomers ? "default" : "outline"}
-                onClick={() => {
-                  setShowCustomers(!showCustomers);
-                  setShowInventory(false);
-                  setShowHistory(false);
-                  setShowSuppliers(false);
-                  setShowExpenses(false);
-                }}
-                className="gap-2"
-              >
-                <Users className="h-5 w-5" />
-                {showCustomers ? "Back to POS" : "Customers"}
-              </Button>
-              <Button
-                variant={showSuppliers ? "default" : "outline"}
-                onClick={() => {
-                  setShowSuppliers(!showSuppliers);
-                  setShowInventory(false);
-                  setShowHistory(false);
-                  setShowCustomers(false);
-                  setShowExpenses(false);
-                }}
-                className="gap-2"
-              >
-                <Truck className="h-5 w-5" />
-                {showSuppliers ? "Back to POS" : "Suppliers"}
-              </Button>
-              <Button
-                variant={showExpenses ? "default" : "outline"}
-                onClick={() => {
-                  setShowExpenses(!showExpenses);
-                  setShowInventory(false);
-                  setShowHistory(false);
-                  setShowCustomers(false);
-                  setShowSuppliers(false);
-                }}
-                className="gap-2"
-              >
-                <FileText className="h-5 w-5" />
-                {showExpenses ? "Back to POS" : "Expenses"}
-              </Button>
+              {hasAccess(["sales", "admin", "super_admin"]) && (
+                <Button
+                  variant={showInventory ? "default" : "outline"}
+                  onClick={() => {
+                    setShowInventory(!showInventory);
+                    setShowHistory(false);
+                    setShowCustomers(false);
+                    setShowSuppliers(false);
+                    setShowExpenses(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <Package className="h-5 w-5" />
+                  {showInventory ? "Back to POS" : "Inventory"}
+                </Button>
+              )}
+              
+              {hasAccess(["inventory", "finance", "admin", "super_admin"]) && (
+                <Button
+                  variant={showInventory ? "default" : "outline"}
+                  onClick={() => {
+                    setShowInventory(!showInventory);
+                    setShowHistory(false);
+                    setShowCustomers(false);
+                    setShowSuppliers(false);
+                    setShowExpenses(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <Package className="h-5 w-5" />
+                  {showInventory ? "Back to Main" : "Inventory"}
+                </Button>
+              )}
+              
+              {hasAccess(["sales", "finance", "admin", "super_admin"]) && (
+                <Button
+                  variant={showHistory ? "default" : "outline"}
+                  onClick={() => {
+                    setShowHistory(!showHistory);
+                    setShowInventory(false);
+                    setShowCustomers(false);
+                    setShowSuppliers(false);
+                    setShowExpenses(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <Receipt className="h-5 w-5" />
+                  {showHistory ? "Back" : "Order History"}
+                </Button>
+              )}
+              
+              {hasAccess(["sales", "admin", "super_admin"]) && (
+                <Button
+                  variant={showCustomers ? "default" : "outline"}
+                  onClick={() => {
+                    setShowCustomers(!showCustomers);
+                    setShowInventory(false);
+                    setShowHistory(false);
+                    setShowSuppliers(false);
+                    setShowExpenses(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <Users className="h-5 w-5" />
+                  {showCustomers ? "Back" : "Customers"}
+                </Button>
+              )}
+              
+              {hasAccess(["inventory", "admin", "super_admin"]) && (
+                <Button
+                  variant={showSuppliers ? "default" : "outline"}
+                  onClick={() => {
+                    setShowSuppliers(!showSuppliers);
+                    setShowInventory(false);
+                    setShowHistory(false);
+                    setShowCustomers(false);
+                    setShowExpenses(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <Truck className="h-5 w-5" />
+                  {showSuppliers ? "Back" : "Suppliers"}
+                </Button>
+              )}
+              
+              {hasAccess(["finance", "admin", "super_admin"]) && (
+                <Button
+                  variant={showExpenses ? "default" : "outline"}
+                  onClick={() => {
+                    setShowExpenses(!showExpenses);
+                    setShowInventory(false);
+                    setShowHistory(false);
+                    setShowCustomers(false);
+                    setShowSuppliers(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <FileText className="h-5 w-5" />
+                  {showExpenses ? "Back" : "Expenses"}
+                </Button>
+              )}
+              
+              {hasAccess(["super_admin"]) && (
+                <Button
+                  variant={showUsers ? "default" : "outline"}
+                  onClick={() => {
+                    setShowUsers(!showUsers);
+                    setShowInventory(false);
+                    setShowHistory(false);
+                    setShowCustomers(false);
+                    setShowSuppliers(false);
+                    setShowExpenses(false);
+                  }}
+                  className="gap-2"
+                >
+                  <Shield className="h-5 w-5" />
+                  {showUsers ? "Back" : "Users"}
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        {showInventory ? (
+        {showUsers ? (
+          <UserManagement />
+        ) : showInventory ? (
           <InventoryManagement />
         ) : showHistory ? (
           <OrderHistory />
@@ -404,7 +484,7 @@ const Index = () => {
           <SupplierManagement />
         ) : showExpenses ? (
           <OperationsExpense />
-        ) : (
+        ) : hasAccess(["sales", "admin", "super_admin"]) ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
               <CategoryFilter
@@ -433,6 +513,13 @@ const Index = () => {
                 onCheckout={handleCheckout}
               />
             </div>
+          </div>
+        ) : (
+          <div className="text-center p-8">
+            <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
+            <p className="text-muted-foreground">
+              Use the navigation buttons above to access your modules.
+            </p>
           </div>
         )}
       </div>

@@ -45,6 +45,7 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
     const { data, error } = await supabase
       .from("customers")
       .select("id, name")
+      .eq("is_active", true)
       .order("name");
     
     if (error) {

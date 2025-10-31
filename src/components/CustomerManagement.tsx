@@ -11,7 +11,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, UserPlus } from "lucide-react";
+import { Pencil, UserPlus, History } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Customer {
   id: string;
@@ -20,13 +28,22 @@ interface Customer {
   phone: string | null;
   address: string | null;
   created_at: string;
+  is_active: boolean;
+  previous_version?: string | null;
+  replaced_by?: string | null;
 }
 
 export const CustomerManagement = () => {
+  const { role, hasAccess } = useUserRole();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [historyCustomer, setHistoryCustomer] = useState<Customer | null>(null);
+  const [customerHistory, setCustomerHistory] = useState<Customer[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const canViewSensitiveData = role === "admin" || role === "super_admin";
 
   const fetchCustomers = async () => {
     setIsLoading(true);
@@ -34,6 +51,7 @@ export const CustomerManagement = () => {
       const { data, error } = await supabase
         .from("customers")
         .select("*")
+        .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -50,19 +68,33 @@ export const CustomerManagement = () => {
     fetchCustomers();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
-
+  const fetchCustomerHistory = async (customerId: string) => {
     try {
-      const { error } = await supabase.from("customers").delete().eq("id", id);
+      const history: Customer[] = [];
+      let currentId: string | null = customerId;
 
-      if (error) throw error;
+      // Trace back through previous versions
+      while (currentId) {
+        const { data, error } = await supabase
+          .from("customers")
+          .select("*")
+          .eq("id", currentId)
+          .single();
 
-      toast.success("Customer deleted successfully");
-      fetchCustomers();
+        if (error) throw error;
+        if (data) {
+          history.push(data);
+          currentId = data.previous_version;
+        } else {
+          break;
+        }
+      }
+
+      setCustomerHistory(history.reverse()); // Show oldest first
+      setShowHistory(true);
     } catch (error) {
-      console.error("Error deleting customer:", error);
-      toast.error("Failed to delete customer");
+      console.error("Error fetching customer history:", error);
+      toast.error("Failed to load customer history");
     }
   };
 
@@ -71,15 +103,35 @@ export const CustomerManagement = () => {
     setIsDialogOpen(true);
   };
 
+  const handleViewHistory = (customer: Customer) => {
+    setHistoryCustomer(customer);
+    fetchCustomerHistory(customer.id);
+  };
+
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setEditingCustomer(null);
   };
 
+  if (!hasAccess(["sales", "admin", "super_admin"])) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">
+          You don't have permission to access this module.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Customer Management</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Customer Management</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Showing active customers only
+          </p>
+        </div>
         <Button onClick={() => setIsDialogOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
           Add Customer
@@ -96,9 +148,9 @@ export const CustomerManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Address</TableHead>
+                {canViewSensitiveData && <TableHead>Email</TableHead>}
+                {canViewSensitiveData && <TableHead>Phone</TableHead>}
+                {canViewSensitiveData && <TableHead>Address</TableHead>}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -106,25 +158,29 @@ export const CustomerManagement = () => {
               {customers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.name}</TableCell>
-                  <TableCell>{customer.email || "-"}</TableCell>
-                  <TableCell>{customer.phone || "-"}</TableCell>
-                  <TableCell>{customer.address || "-"}</TableCell>
+                  {canViewSensitiveData && <TableCell>{customer.email || "-"}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{customer.phone || "-"}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{customer.address || "-"}</TableCell>}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(customer)}
+                        title="Edit customer"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(customer.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canViewSensitiveData && customer.previous_version && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleViewHistory(customer)}
+                          title="View history"
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -140,6 +196,52 @@ export const CustomerManagement = () => {
         onCustomerAdded={fetchCustomers}
         editingCustomer={editingCustomer}
       />
+
+      <Dialog open={showHistory} onOpenChange={setShowHistory}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Customer History: {historyCustomer?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {customerHistory.map((version, index) => (
+              <div
+                key={version.id}
+                className="border rounded-lg p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">
+                    Version {customerHistory.length - index}
+                  </h4>
+                  <div className="flex gap-2">
+                    <Badge variant={version.is_active ? "default" : "secondary"}>
+                      {version.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(version.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Name:</span> {version.name}
+                  </div>
+                  <div>
+                    <span className="font-medium">Email:</span> {version.email || "-"}
+                  </div>
+                  <div>
+                    <span className="font-medium">Phone:</span> {version.phone || "-"}
+                  </div>
+                  <div className="col-span-2">
+                    <span className="font-medium">Address:</span> {version.address || "-"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

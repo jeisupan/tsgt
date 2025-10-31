@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { History, Receipt, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Order {
   id: string;
@@ -28,10 +29,13 @@ interface OrderItem {
 }
 
 export const OrderHistory = () => {
+  const { role, canEdit } = useUserRole();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [editedItems, setEditedItems] = useState<OrderItem[]>([]);
+
+  const canEditOrders = canEdit("orders") && (role === "sales" || role === "admin" || role === "super_admin");
 
   useEffect(() => {
     fetchOrders();
@@ -209,24 +213,26 @@ export const OrderHistory = () => {
                       Tax: ₱{Number(order.tax).toFixed(2)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditClick(order)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(order.id)}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {canEditOrders && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditClick(order)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(order.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
 

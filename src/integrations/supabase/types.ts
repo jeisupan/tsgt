@@ -20,8 +20,11 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_active: boolean
           name: string
           phone: string | null
+          previous_version: string | null
+          replaced_by: string | null
           updated_at: string
         }
         Insert: {
@@ -29,8 +32,11 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_active?: boolean
           name: string
           phone?: string | null
+          previous_version?: string | null
+          replaced_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -38,11 +44,29 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_active?: boolean
           name?: string
           phone?: string | null
+          previous_version?: string | null
+          replaced_by?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_previous_version_fkey"
+            columns: ["previous_version"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_replaced_by_fkey"
+            columns: ["replaced_by"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inbound_transactions: {
         Row: {
@@ -284,14 +308,41 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           address: string | null
           created_at: string
           email: string | null
           id: string
+          is_active: boolean
           name: string
           phone: string | null
+          previous_version: string | null
+          replaced_by: string | null
           tin_number: string | null
           updated_at: string
         }
@@ -300,8 +351,11 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_active?: boolean
           name: string
           phone?: string | null
+          previous_version?: string | null
+          replaced_by?: string | null
           tin_number?: string | null
           updated_at?: string
         }
@@ -310,28 +364,49 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_active?: boolean
           name?: string
           phone?: string | null
+          previous_version?: string | null
+          replaced_by?: string | null
           tin_number?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_previous_version_fkey"
+            columns: ["previous_version"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suppliers_replaced_by_fkey"
+            columns: ["replaced_by"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
@@ -343,6 +418,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -350,9 +429,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "staff" | "manager" | "admin"
+      app_role: "super_admin" | "admin" | "sales" | "inventory" | "finance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -480,7 +560,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["staff", "manager", "admin"],
+      app_role: ["super_admin", "admin", "sales", "inventory", "finance"],
     },
   },
 } as const

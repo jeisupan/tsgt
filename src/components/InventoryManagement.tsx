@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Package, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { PRODUCTS } from "@/pages/Index";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface InventoryItem {
   id: string;
@@ -44,10 +45,13 @@ interface OutboundTransaction {
 }
 
 export const InventoryManagement = () => {
+  const { role, canEdit } = useUserRole();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inboundHistory, setInboundHistory] = useState<InboundTransaction[]>([]);
   const [outboundHistory, setOutboundHistory] = useState<OutboundTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const canEditInventory = canEdit("inventory") && (role === "inventory" || role === "admin" || role === "super_admin");
 
   // Inbound form state
   const [inboundProductId, setInboundProductId] = useState("");
@@ -307,7 +311,7 @@ export const InventoryManagement = () => {
             <form onSubmit={handleInboundSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="inbound-product">Product</Label>
-                <Select value={inboundProductId} onValueChange={setInboundProductId}>
+                <Select value={inboundProductId} onValueChange={setInboundProductId} disabled={!canEditInventory}>
                   <SelectTrigger id="inbound-product">
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
@@ -330,6 +334,7 @@ export const InventoryManagement = () => {
                   value={inboundQuantity}
                   onChange={(e) => setInboundQuantity(e.target.value)}
                   placeholder="Enter quantity"
+                  disabled={!canEditInventory}
                 />
               </div>
 
