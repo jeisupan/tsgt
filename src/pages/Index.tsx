@@ -363,7 +363,7 @@ const Index = () => {
           <div className="mt-4">
             <div className="flex flex-wrap gap-2">{/* Navigation buttons remain below */}
             
-              {hasAccess(["sales", "admin", "super_admin"]) && (
+              {hasAccess(["sales", "inventory", "finance", "admin", "super_admin"]) && (
                 <Button
                   variant={showInventory ? "default" : "outline"}
                   onClick={() => {
@@ -378,24 +378,6 @@ const Index = () => {
                 >
                   <Package className="h-5 w-5" />
                   {showInventory ? "Back to POS" : "Inventory"}
-                </Button>
-              )}
-              
-              {hasAccess(["inventory", "finance", "admin", "super_admin"]) && (
-                <Button
-                  variant={showInventory ? "default" : "outline"}
-                  onClick={() => {
-                    setShowInventory(!showInventory);
-                    setShowHistory(false);
-                    setShowCustomers(false);
-                    setShowSuppliers(false);
-                    setShowExpenses(false);
-                    setShowUsers(false);
-                  }}
-                  className="gap-2"
-                >
-                  <Package className="h-5 w-5" />
-                  {showInventory ? "Back to Main" : "Inventory"}
                 </Button>
               )}
               
