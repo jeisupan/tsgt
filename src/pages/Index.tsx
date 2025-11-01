@@ -133,6 +133,28 @@ const Index = () => {
   useEffect(() => {
     if (user) {
       fetchInventory();
+      
+      // Subscribe to real-time inventory updates
+      const channel = supabase
+        .channel('inventory-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'inventory'
+          },
+          (payload) => {
+            console.log('Inventory changed:', payload);
+            // Refresh inventory on any change (INSERT, UPDATE, DELETE)
+            fetchInventory();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
