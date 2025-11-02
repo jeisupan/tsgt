@@ -395,7 +395,7 @@ const Index = () => {
                   className="gap-2"
                 >
                   <Receipt className="h-5 w-5" />
-                  {showHistory ? "Back" : "Order History"}
+                  {showHistory ? "Back to POS" : "Order History"}
                 </Button>
               )}
               
@@ -413,7 +413,7 @@ const Index = () => {
                   className="gap-2"
                 >
                   <Users className="h-5 w-5" />
-                  {showCustomers ? "Back" : "Customers"}
+                  {showCustomers ? "Back to POS" : "Customers"}
                 </Button>
               )}
               
@@ -431,7 +431,7 @@ const Index = () => {
                   className="gap-2"
                 >
                   <Truck className="h-5 w-5" />
-                  {showSuppliers ? "Back" : "Suppliers"}
+                  {showSuppliers ? "Back to POS" : "Suppliers"}
                 </Button>
               )}
               
@@ -449,7 +449,7 @@ const Index = () => {
                   className="gap-2"
                 >
                   <FileText className="h-5 w-5" />
-                  {showExpenses ? "Back" : "Expenses"}
+                  {showExpenses ? "Back to POS" : "Expenses"}
                 </Button>
               )}
               
@@ -467,7 +467,7 @@ const Index = () => {
                   className="gap-2"
                 >
                   <Shield className="h-5 w-5" />
-                  {showUsers ? "Back" : "Users"}
+                  {showUsers ? "Back to POS" : "Users"}
                 </Button>
               )}
             </div>
