@@ -308,6 +308,39 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

@@ -9,7 +9,8 @@ import { InventoryManagement } from "@/components/InventoryManagement";
 import { CustomerManagement } from "@/components/CustomerManagement";
 import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
-import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield } from "lucide-react";
+import { ProductManagement } from "@/components/ProductManagement";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,9 +103,11 @@ const Index = () => {
   const [showSuppliers, setShowSuppliers] = useState(false);
   const [showExpenses, setShowExpenses] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
+  const [showProducts, setShowProducts] = useState(false);
   const [inventory, setInventory] = useState<Record<string, number>>({});
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
 
-  const categories = Array.from(new Set(PRODUCTS.map((p) => p.category)));
+  const categories = Array.from(new Set(products.map((p) => p.category)));
 
   useEffect(() => {
     // Check authentication status
@@ -133,9 +136,10 @@ const Index = () => {
   useEffect(() => {
     if (user) {
       fetchInventory();
+      fetchProducts();
       
       // Subscribe to real-time inventory updates
-      const channel = supabase
+      const inventoryChannel = supabase
         .channel('inventory-changes')
         .on(
           'postgres_changes',
@@ -146,14 +150,30 @@ const Index = () => {
           },
           (payload) => {
             console.log('Inventory changed:', payload);
-            // Refresh inventory on any change (INSERT, UPDATE, DELETE)
             fetchInventory();
           }
         )
         .subscribe();
 
+      // Subscribe to real-time product updates
+      const productsChannel = supabase
+        .channel('products-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'products'
+          },
+          () => {
+            fetchProducts();
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(inventoryChannel);
+        supabase.removeChannel(productsChannel);
       };
     }
   }, [user]);
@@ -171,10 +191,33 @@ const Index = () => {
     setInventory(inventoryMap);
   };
 
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("category", { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching products:", error);
+      return;
+    }
+    
+    // Transform database products to match Product interface
+    const transformedProducts: Product[] = data.map((p) => ({
+      id: p.product_id,
+      name: p.name,
+      price: Number(p.price),
+      category: p.category,
+      image: p.image_url || "",
+    }));
+    
+    setProducts(transformedProducts);
+  };
+
   const filteredProducts =
     selectedCategory === "All"
-      ? PRODUCTS
-      : PRODUCTS.filter((p) => p.category === selectedCategory);
+      ? products
+      : products.filter((p) => p.category === selectedCategory);
 
   const handleAddToCart = (product: Product) => {
     const availableStock = inventory[product.id] || 0;
@@ -286,7 +329,7 @@ const Index = () => {
         order_id: orderData.id,
         product_id: item.id,
         product_name: item.name,
-        product_category: PRODUCTS.find((p) => p.id === item.id)?.category || "Unknown",
+        product_category: products.find((p) => p.id === item.id)?.category || "Unknown",
         price: item.price,
         quantity: item.quantity,
         line_total: item.price * item.quantity,
@@ -373,6 +416,7 @@ const Index = () => {
                     setShowSuppliers(false);
                     setShowExpenses(false);
                     setShowUsers(false);
+                    setShowProducts(false);
                   }}
                   className="gap-2"
                 >
@@ -391,6 +435,7 @@ const Index = () => {
                     setShowSuppliers(false);
                     setShowExpenses(false);
                     setShowUsers(false);
+                    setShowProducts(false);
                   }}
                   className="gap-2"
                 >
@@ -409,6 +454,7 @@ const Index = () => {
                     setShowSuppliers(false);
                     setShowExpenses(false);
                     setShowUsers(false);
+                    setShowProducts(false);
                   }}
                   className="gap-2"
                 >
@@ -427,6 +473,7 @@ const Index = () => {
                     setShowCustomers(false);
                     setShowExpenses(false);
                     setShowUsers(false);
+                    setShowProducts(false);
                   }}
                   className="gap-2"
                 >
@@ -445,11 +492,31 @@ const Index = () => {
                     setShowCustomers(false);
                     setShowSuppliers(false);
                     setShowUsers(false);
+                    setShowProducts(false);
                   }}
                   className="gap-2"
                 >
                   <FileText className="h-5 w-5" />
                   {showExpenses ? "Back to POS" : "Expenses"}
+                </Button>
+              )}
+              
+              {hasAccess(["admin", "super_admin"]) && (
+                <Button
+                  variant={showProducts ? "default" : "outline"}
+                  onClick={() => {
+                    setShowProducts(!showProducts);
+                    setShowInventory(false);
+                    setShowHistory(false);
+                    setShowCustomers(false);
+                    setShowSuppliers(false);
+                    setShowExpenses(false);
+                    setShowUsers(false);
+                  }}
+                  className="gap-2"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  {showProducts ? "Back to POS" : "POS Items"}
                 </Button>
               )}
               
@@ -463,6 +530,7 @@ const Index = () => {
                     setShowCustomers(false);
                     setShowSuppliers(false);
                     setShowExpenses(false);
+                    setShowProducts(false);
                   }}
                   className="gap-2"
                 >
@@ -478,6 +546,8 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         {showUsers ? (
           <UserManagement />
+        ) : showProducts ? (
+          <ProductManagement />
         ) : showInventory ? (
           <InventoryManagement />
         ) : showHistory ? (

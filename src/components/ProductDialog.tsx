@@ -1,0 +1,190 @@
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Product {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+  category: string;
+  image_url: string | null;
+}
+
+interface ProductDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  product?: Product | null;
+  onSuccess: () => void;
+}
+
+export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: ProductDialogProps) => {
+  const [formData, setFormData] = useState({
+    product_id: "",
+    name: "",
+    price: "",
+    category: "",
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        product_id: product.product_id,
+        name: product.name,
+        price: product.price.toString(),
+        category: product.category,
+      });
+    } else {
+      setFormData({
+        product_id: "",
+        name: "",
+        price: "",
+        category: "",
+      });
+      setImageFile(null);
+    }
+  }, [product, open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      let imageUrl = product?.image_url || null;
+
+      // Upload image if a new file is selected
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${formData.product_id}-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+
+        imageUrl = publicUrl;
+
+        // Delete old image if updating
+        if (product?.image_url && !product.image_url.includes('/assets/')) {
+          const oldFileName = product.image_url.split('/').pop();
+          if (oldFileName) {
+            await supabase.storage.from('product-images').remove([oldFileName]);
+          }
+        }
+      }
+
+      const productData = {
+        product_id: formData.product_id,
+        name: formData.name,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        image_url: imageUrl,
+      };
+
+      if (product) {
+        const { error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', product.id);
+
+        if (error) throw error;
+        toast.success("Product updated successfully");
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .insert(productData);
+
+        if (error) throw error;
+        toast.success("Product added successfully");
+      }
+
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{product ? "Edit Product" : "Add New Product"}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="product_id">Product ID</Label>
+            <Input
+              id="product_id"
+              value={formData.product_id}
+              onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
+              required
+              disabled={!!product}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="price">Price</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Input
+              id="category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="image">Image</Label>
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            />
+            {product?.image_url && !imageFile && (
+              <p className="text-sm text-muted-foreground">Current image will be kept if no new file is selected</p>
+            )}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
