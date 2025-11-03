@@ -114,8 +114,11 @@ export const CustomerManagement = () => {
   };
 
   const handleDuplicateFound = (customer: Customer) => {
-    setEditingCustomer(customer);
-    setIsDialogOpen(true);
+    // Use setTimeout to ensure dialog state is properly reset before opening again
+    setTimeout(() => {
+      setEditingCustomer(customer);
+      setIsDialogOpen(true);
+    }, 100);
   };
 
   if (!hasAccess(["sales", "admin", "super_admin"])) {

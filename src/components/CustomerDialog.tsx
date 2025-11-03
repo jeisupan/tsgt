@@ -132,11 +132,6 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
 
         if (duplicateCustomer && duplicateField) {
           setIsSubmitting(false);
-          onOpenChange(false);
-          
-          if (onDuplicateFound) {
-            onDuplicateFound(duplicateCustomer);
-          }
           
           toast.error(`A customer with this ${duplicateField} already exists`, {
             description: "Click 'Edit Customer' to update the existing record",
@@ -149,6 +144,8 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
               }
             }
           });
+          
+          onOpenChange(false);
           return;
         }
       }
