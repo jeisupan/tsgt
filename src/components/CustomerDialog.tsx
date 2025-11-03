@@ -76,6 +76,64 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
     setIsSubmitting(true);
 
     try {
+      // Check for duplicates (only when creating new customer)
+      if (!editingCustomer) {
+        const duplicateChecks = [];
+        
+        // Check for duplicate name
+        if (formData.name.trim()) {
+          duplicateChecks.push(
+            supabase
+              .from("customers")
+              .select("id")
+              .eq("is_active", true)
+              .ilike("name", formData.name.trim())
+              .limit(1)
+          );
+        }
+        
+        // Check for duplicate email
+        if (formData.email.trim()) {
+          duplicateChecks.push(
+            supabase
+              .from("customers")
+              .select("id")
+              .eq("is_active", true)
+              .ilike("email", formData.email.trim())
+              .limit(1)
+          );
+        }
+        
+        // Check for duplicate phone
+        if (formData.phone.trim()) {
+          duplicateChecks.push(
+            supabase
+              .from("customers")
+              .select("id")
+              .eq("is_active", true)
+              .eq("phone", formData.phone.trim())
+              .limit(1)
+          );
+        }
+
+        const results = await Promise.all(duplicateChecks);
+        
+        let duplicateField = "";
+        if (formData.name.trim() && results[0]?.data && results[0].data.length > 0) {
+          duplicateField = "name";
+        } else if (formData.email.trim() && results[duplicateChecks.length > 1 ? 1 : 0]?.data && results[duplicateChecks.length > 1 ? 1 : 0].data.length > 0) {
+          duplicateField = "email";
+        } else if (formData.phone.trim() && results[results.length - 1]?.data && results[results.length - 1].data.length > 0) {
+          duplicateField = "phone";
+        }
+
+        if (duplicateField) {
+          toast.error(`A customer with this ${duplicateField} already exists`);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       if (editingCustomer) {
         // Implement Change Data Capture (CDC)
         // Mark old record as inactive
