@@ -59,6 +59,7 @@ export const InventoryManagement = () => {
   const [outboundHistory, setOutboundHistory] = useState<OutboundTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<ProductFromDB[]>([]);
+  const [activeTab, setActiveTab] = useState("inventory");
 
   const canEditInventory = canEdit("inventory") && (role === "inventory" || role === "admin" || role === "super_admin");
 
@@ -204,9 +205,10 @@ export const InventoryManagement = () => {
       setInboundSupplier("");
       setInboundNotes("");
       
-      // Refresh data
+      // Refresh data and switch to inventory tab
       fetchInventory();
       fetchInboundHistory();
+      setActiveTab("inventory");
     } catch (error: any) {
       console.error("Error adding inbound stock:", error);
       toast.error("Failed to add stock");
@@ -284,7 +286,7 @@ export const InventoryManagement = () => {
         <h2 className="text-3xl font-bold">Inventory Management</h2>
       </div>
 
-      <Tabs defaultValue="inventory" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="inventory">Current Stock</TabsTrigger>
           <TabsTrigger value="inbound">Inbound</TabsTrigger>
