@@ -5,6 +5,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const productSchema = z.object({
+  product_id: z.string()
+    .trim()
+    .min(1, "Product ID is required")
+    .max(50, "Product ID must be less than 50 characters")
+    .regex(/^[A-Za-z0-9-_]+$/, "Product ID must contain only letters, numbers, dashes, and underscores"),
+  name: z.string()
+    .trim()
+    .min(1, "Product name is required")
+    .max(200, "Product name must be less than 200 characters"),
+  price: z.number()
+    .positive("Price must be greater than 0")
+    .max(999999.99, "Price must be less than 1,000,000"),
+  category: z.string()
+    .trim()
+    .min(1, "Category is required")
+    .max(100, "Category must be less than 100 characters"),
+});
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface Product {
   id: string;
@@ -53,6 +76,33 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate image file if provided
+    if (imageFile) {
+      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+        toast.error("Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.");
+        return;
+      }
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
+    }
+
+    // Validate form data with Zod
+    const validation = productSchema.safeParse({
+      product_id: formData.product_id,
+      name: formData.name,
+      price: parseFloat(formData.price),
+      category: formData.category,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+
     setLoading(true);
 
     try {
