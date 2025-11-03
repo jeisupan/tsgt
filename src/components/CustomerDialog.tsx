@@ -32,9 +32,10 @@ interface CustomerDialogProps {
   onOpenChange: (open: boolean) => void;
   onCustomerAdded: () => void;
   editingCustomer?: Customer | null;
+  onDuplicateFound?: (customer: Customer) => void;
 }
 
-export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCustomer }: CustomerDialogProps) => {
+export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCustomer, onDuplicateFound }: CustomerDialogProps) => {
   const { role } = useUserRole();
   const [formData, setFormData] = useState({
     name: "",
@@ -78,58 +79,76 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
     try {
       // Check for duplicates (only when creating new customer)
       if (!editingCustomer) {
-        const duplicateChecks = [];
+        let duplicateCustomer: Customer | null = null;
+        let duplicateField = "";
         
         // Check for duplicate name
         if (formData.name.trim()) {
-          duplicateChecks.push(
-            supabase
-              .from("customers")
-              .select("id")
-              .eq("is_active", true)
-              .ilike("name", formData.name.trim())
-              .limit(1)
-          );
+          const { data } = await supabase
+            .from("customers")
+            .select("*")
+            .eq("is_active", true)
+            .ilike("name", formData.name.trim())
+            .limit(1)
+            .maybeSingle();
+          
+          if (data) {
+            duplicateCustomer = data;
+            duplicateField = "name";
+          }
         }
         
         // Check for duplicate email
-        if (formData.email.trim()) {
-          duplicateChecks.push(
-            supabase
-              .from("customers")
-              .select("id")
-              .eq("is_active", true)
-              .ilike("email", formData.email.trim())
-              .limit(1)
-          );
+        if (!duplicateCustomer && formData.email.trim()) {
+          const { data } = await supabase
+            .from("customers")
+            .select("*")
+            .eq("is_active", true)
+            .ilike("email", formData.email.trim())
+            .limit(1)
+            .maybeSingle();
+          
+          if (data) {
+            duplicateCustomer = data;
+            duplicateField = "email";
+          }
         }
         
         // Check for duplicate phone
-        if (formData.phone.trim()) {
-          duplicateChecks.push(
-            supabase
-              .from("customers")
-              .select("id")
-              .eq("is_active", true)
-              .eq("phone", formData.phone.trim())
-              .limit(1)
-          );
+        if (!duplicateCustomer && formData.phone.trim()) {
+          const { data } = await supabase
+            .from("customers")
+            .select("*")
+            .eq("is_active", true)
+            .eq("phone", formData.phone.trim())
+            .limit(1)
+            .maybeSingle();
+          
+          if (data) {
+            duplicateCustomer = data;
+            duplicateField = "phone";
+          }
         }
 
-        const results = await Promise.all(duplicateChecks);
-        
-        let duplicateField = "";
-        if (formData.name.trim() && results[0]?.data && results[0].data.length > 0) {
-          duplicateField = "name";
-        } else if (formData.email.trim() && results[duplicateChecks.length > 1 ? 1 : 0]?.data && results[duplicateChecks.length > 1 ? 1 : 0].data.length > 0) {
-          duplicateField = "email";
-        } else if (formData.phone.trim() && results[results.length - 1]?.data && results[results.length - 1].data.length > 0) {
-          duplicateField = "phone";
-        }
-
-        if (duplicateField) {
-          toast.error(`A customer with this ${duplicateField} already exists`);
+        if (duplicateCustomer && duplicateField) {
           setIsSubmitting(false);
+          onOpenChange(false);
+          
+          if (onDuplicateFound) {
+            onDuplicateFound(duplicateCustomer);
+          }
+          
+          toast.error(`A customer with this ${duplicateField} already exists`, {
+            description: "Click 'Edit Customer' to update the existing record",
+            action: {
+              label: "Edit Customer",
+              onClick: () => {
+                if (onDuplicateFound) {
+                  onDuplicateFound(duplicateCustomer);
+                }
+              }
+            }
+          });
           return;
         }
       }

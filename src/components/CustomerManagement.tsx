@@ -113,6 +113,11 @@ export const CustomerManagement = () => {
     setEditingCustomer(null);
   };
 
+  const handleDuplicateFound = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setIsDialogOpen(true);
+  };
+
   if (!hasAccess(["sales", "admin", "super_admin"])) {
     return (
       <div className="text-center p-8">
@@ -195,6 +200,7 @@ export const CustomerManagement = () => {
         onOpenChange={handleDialogClose}
         onCustomerAdded={fetchCustomers}
         editingCustomer={editingCustomer}
+        onDuplicateFound={handleDuplicateFound}
       />
 
       <Dialog open={showHistory} onOpenChange={setShowHistory}>
