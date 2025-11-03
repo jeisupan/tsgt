@@ -1,50 +1,55 @@
-const CACHE_NAME = 'tsgt-cache-v1';
-const urlsToCache = [
-  '/',
-  '/index.html'
-];
+const CACHE_NAME = 'tsgt-cache-v2';
+const CACHE_MAX_AGE = 31536000; // 1 year in seconds
 
-// Install event - cache resources
+// Install event - activate immediately
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - take control immediately and clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
+        cacheNames
+          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .map((cacheName) => caches.delete(cacheName))
       );
     }).then(() => self.clients.claim())
   );
 });
 
-// Fetch event - serve from cache with network fallback
+// Fetch event - aggressive caching for static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Cache CSS and JS files with cache-first strategy
-  if (request.destination === 'script' || request.destination === 'style') {
+  // Cache-first strategy for static assets (JS, CSS, images)
+  if (
+    request.destination === 'script' || 
+    request.destination === 'style' ||
+    request.destination === 'image' ||
+    url.pathname.startsWith('/assets/')
+  ) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
-        return cache.match(request).then((response) => {
-          if (response) {
-            return response;
+        return cache.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            // Return cached version immediately
+            return cachedResponse;
           }
+          
+          // Fetch from network and cache with long TTL
           return fetch(request).then((networkResponse) => {
-            // Cache the fetched resource
-            cache.put(request, networkResponse.clone());
+            if (networkResponse && networkResponse.status === 200) {
+              // Clone and cache the response
+              const responseToCache = networkResponse.clone();
+              cache.put(request, responseToCache);
+            }
             return networkResponse;
+          }).catch(() => {
+            // If fetch fails, return a fallback
+            return new Response('Network error', { status: 408 });
           });
         });
       })
@@ -52,12 +57,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For other requests, use network-first strategy
+  // Network-first for other requests (API calls, HTML)
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Cache successful responses
-        if (response.status === 200) {
+        if (response && response.status === 200 && request.method === 'GET') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseToCache);
@@ -65,9 +69,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => {
-        // If network fails, try cache
-        return caches.match(request);
-      })
+      .catch(() => caches.match(request))
   );
 });
