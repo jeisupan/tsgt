@@ -33,9 +33,9 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.12; // 12% tax
-  const total = subtotal + tax;
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = total / 1.12; // Price without VAT (VAT is already included in price)
+  const tax = total - subtotal; // 12% VAT amount
 
   useEffect(() => {
     fetchCustomers();
@@ -164,11 +164,11 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
           </div>
           <Separator />
           <div className="flex justify-between text-muted-foreground">
-            <span>Subtotal</span>
+            <span>Subtotal (excl. VAT)</span>
             <span>₱{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
-            <span>Tax (12%)</span>
+            <span>VAT (12% included)</span>
             <span>₱{tax.toFixed(2)}</span>
           </div>
           <Separator />
