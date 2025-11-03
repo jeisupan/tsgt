@@ -13,6 +13,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { z } from "zod";
+
+const expenseSchema = z.object({
+  voucher_number: z.string().trim().min(1, "Voucher number is required").max(50, "Voucher number must be less than 50 characters"),
+  voucher_type: z.string().min(1, "Voucher type is required"),
+  particulars: z.string().trim().min(1, "Particulars is required").max(1000, "Particulars must be less than 1000 characters"),
+  amount: z.string().refine((val) => {
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 10000000;
+  }, "Amount must be a positive number less than 10,000,000"),
+  branch: z.string().trim().min(1, "Branch is required").max(100, "Branch must be less than 100 characters"),
+  category: z.string().min(1, "Category is required"),
+  plate_number: z.string().max(20, "Plate number must be less than 20 characters").optional(),
+  remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
+  encoder: z.string(),
+  date: z.string()
+});
 
 interface OperationsExpense {
   id: string;
@@ -89,8 +106,11 @@ export const OperationsExpenseDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.voucher_number.trim() || !formData.voucher_type || !formData.particulars.trim() || !formData.amount) {
-      toast.error("Please fill in all required fields");
+    // Validate form data with zod
+    const validation = expenseSchema.safeParse(formData);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 
@@ -123,7 +143,6 @@ export const OperationsExpenseDialog = ({
       onExpenseAdded();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving expense:", error);
       toast.error(`Failed to ${editingExpense ? "update" : "add"} expense`);
     } finally {
       setIsSubmitting(false);

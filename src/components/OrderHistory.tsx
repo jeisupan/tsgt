@@ -10,6 +10,12 @@ import { History, Receipt, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
+import { z } from "zod";
+
+const orderItemSchema = z.object({
+  quantity: z.number().int().positive("Quantity must be positive").max(10000, "Quantity too large"),
+  price: z.number().positive("Price must be positive").max(1000000, "Price too large")
+});
 
 interface Order {
   id: string;
@@ -71,7 +77,6 @@ export const OrderHistory = () => {
         setOrders(ordersWithItems);
       }
     } catch (error: any) {
-      console.error("Error fetching orders:", error);
       toast.error("Failed to load order history");
     } finally {
       setLoading(false);
@@ -101,7 +106,6 @@ export const OrderHistory = () => {
       toast.success("Order deleted successfully");
       fetchOrders();
     } catch (error: any) {
-      console.error("Error deleting order:", error);
       toast.error("Failed to delete order");
     }
   };
@@ -113,7 +117,21 @@ export const OrderHistory = () => {
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const updated = [...editedItems];
-    updated[index] = { ...updated[index], [field]: value };
+    const numValue = Number(value);
+    
+    // Validate the change
+    const validation = orderItemSchema.safeParse({
+      quantity: field === "quantity" ? numValue : updated[index].quantity,
+      price: field === "price" ? numValue : updated[index].price
+    });
+    
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+    
+    updated[index] = { ...updated[index], [field]: numValue };
     
     if (field === "quantity" || field === "price") {
       updated[index].line_total = Number(updated[index].quantity) * Number(updated[index].price);
@@ -126,9 +144,9 @@ export const OrderHistory = () => {
     if (!editingOrder) return;
 
     try {
-      // Calculate new totals
+      // Calculate new totals with 12% tax (matching the rest of the application)
       const subtotal = editedItems.reduce((sum, item) => sum + Number(item.line_total), 0);
-      const tax = subtotal * 0.13;
+      const tax = subtotal * 0.12;
       const total = subtotal + tax;
 
       // Update order totals
@@ -158,7 +176,6 @@ export const OrderHistory = () => {
       setEditingOrder(null);
       fetchOrders();
     } catch (error: any) {
-      console.error("Error updating order:", error);
       toast.error("Failed to update order");
     }
   };

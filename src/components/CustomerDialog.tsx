@@ -9,6 +9,14 @@ import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { z } from "zod";
+
+const customerSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters").optional().or(z.literal('')),
+  phone: z.string().regex(/^[0-9\-\+\(\)\s]*$/, "Phone must contain only numbers and standard formatting characters").max(20, "Phone must be less than 20 characters").optional().or(z.literal('')),
+  address: z.string().max(500, "Address must be less than 500 characters").optional().or(z.literal(''))
+});
 
 interface Customer {
   id: string;
@@ -57,8 +65,11 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim()) {
-      toast.error("Customer name is required");
+    // Validate form data with zod
+    const validation = customerSchema.safeParse(formData);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 
@@ -111,7 +122,6 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
       onCustomerAdded();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving customer:", error);
       toast.error(`Failed to ${editingCustomer ? "update" : "add"} customer`);
     } finally {
       setIsSubmitting(false);

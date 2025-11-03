@@ -6,6 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const supplierSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters").optional().or(z.literal('')),
+  phone: z.string().regex(/^[0-9\-\+\(\)\s]*$/, "Phone must contain only numbers and standard formatting characters").max(20, "Phone must be less than 20 characters").optional().or(z.literal('')),
+  address: z.string().max(500, "Address must be less than 500 characters").optional().or(z.literal('')),
+  tin_number: z.string().max(50, "TIN must be less than 50 characters").optional().or(z.literal(''))
+});
 
 interface Supplier {
   id: string;
@@ -51,8 +60,11 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim()) {
-      toast.error("Supplier name is required");
+    // Validate form data with zod
+    const validation = supplierSchema.safeParse(formData);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 
@@ -80,7 +92,6 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
       onSupplierAdded();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving supplier:", error);
       toast.error(`Failed to ${editingSupplier ? "update" : "add"} supplier`);
     } finally {
       setIsSubmitting(false);

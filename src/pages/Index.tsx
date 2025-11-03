@@ -150,8 +150,7 @@ const Index = () => {
             schema: 'public',
             table: 'inventory'
           },
-          (payload) => {
-            console.log('Inventory changed:', payload);
+          () => {
             fetchInventory();
           }
         )
@@ -183,7 +182,6 @@ const Index = () => {
   const fetchInventory = async () => {
     const { data, error } = await supabase.from("inventory").select("product_id, current_stock");
     if (error) {
-      console.error("Error fetching inventory:", error);
       return;
     }
     const inventoryMap: Record<string, number> = {};
@@ -200,7 +198,6 @@ const Index = () => {
       .order("category", { ascending: true });
     
     if (error) {
-      console.error("Error fetching products:", error);
       return;
     }
     
@@ -384,7 +381,6 @@ const Index = () => {
       setCartItems([]);
       fetchInventory(); // Refresh inventory after checkout
     } catch (error: any) {
-      console.error("Error saving order:", error);
       toast.error("Failed to save order. Please try again.");
     }
   };
