@@ -21,6 +21,8 @@ import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
 import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
 import gasRegulator from "@/assets/gas-regulator.jpg";
 import gasHose from "@/assets/gas-hose.jpg";
+import deliveryService from "@/assets/delivery-service.jpg";
+import refillService from "@/assets/refill-service.jpg";
 
 // Gas station products data - exported for inventory component
 export const PRODUCTS: Product[] = [
@@ -210,6 +212,8 @@ const Index = () => {
       '/src/assets/gas-cylinder-small.jpg': gasCylinderSmall,
       '/src/assets/gas-regulator.jpg': gasRegulator,
       '/src/assets/gas-hose.jpg': gasHose,
+      '/src/assets/delivery-service.jpg': deliveryService,
+      '/src/assets/refill-service.jpg': refillService,
     };
     
     const transformedProducts: Product[] = data.map((p) => ({
