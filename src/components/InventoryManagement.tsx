@@ -9,8 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Package, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { PRODUCTS } from "@/pages/Index";
 import { useUserRole } from "@/hooks/useUserRole";
+
+interface ProductFromDB {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+  category: string;
+  image_url: string | null;
+}
 
 interface InventoryItem {
   id: string;
@@ -50,6 +58,7 @@ export const InventoryManagement = () => {
   const [inboundHistory, setInboundHistory] = useState<InboundTransaction[]>([]);
   const [outboundHistory, setOutboundHistory] = useState<OutboundTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<ProductFromDB[]>([]);
 
   const canEditInventory = canEdit("inventory") && (role === "inventory" || role === "admin" || role === "super_admin");
 
@@ -68,10 +77,24 @@ export const InventoryManagement = () => {
   const [outboundNotes, setOutboundNotes] = useState("");
 
   useEffect(() => {
+    fetchProducts();
     fetchInventory();
     fetchInboundHistory();
     fetchOutboundHistory();
   }, []);
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("category", { ascending: true });
+    
+    if (error) {
+      console.error("Error fetching products:", error);
+    } else {
+      setProducts(data || []);
+    }
+  };
 
   const fetchInventory = async () => {
     setLoading(true);
@@ -126,7 +149,7 @@ export const InventoryManagement = () => {
       return;
     }
 
-    const product = PRODUCTS.find(p => p.id === inboundProductId);
+    const product = products.find(p => p.product_id === inboundProductId);
     if (!product) return;
 
     try {
@@ -199,7 +222,7 @@ export const InventoryManagement = () => {
       return;
     }
 
-    const product = PRODUCTS.find(p => p.id === outboundProductId);
+    const product = products.find(p => p.product_id === outboundProductId);
     if (!product) return;
 
     try {
@@ -316,8 +339,8 @@ export const InventoryManagement = () => {
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PRODUCTS.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
+                    {products.map((product) => (
+                      <SelectItem key={product.product_id} value={product.product_id}>
                         {product.name}
                       </SelectItem>
                     ))}
@@ -423,8 +446,8 @@ export const InventoryManagement = () => {
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PRODUCTS.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
+                    {products.map((product) => (
+                      <SelectItem key={product.product_id} value={product.product_id}>
                         {product.name}
                       </SelectItem>
                     ))}

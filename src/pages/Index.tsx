@@ -203,12 +203,21 @@ const Index = () => {
     }
     
     // Transform database products to match Product interface
+    // Map asset paths to imported images
+    const imageMap: Record<string, string> = {
+      '/src/assets/gas-cylinder-large.jpg': gasCylinderLarge,
+      '/src/assets/gas-cylinder-medium.jpg': gasCylinderMedium,
+      '/src/assets/gas-cylinder-small.jpg': gasCylinderSmall,
+      '/src/assets/gas-regulator.jpg': gasRegulator,
+      '/src/assets/gas-hose.jpg': gasHose,
+    };
+    
     const transformedProducts: Product[] = data.map((p) => ({
       id: p.product_id,
       name: p.name,
       price: Number(p.price),
       category: p.category,
-      image: p.image_url || "",
+      image: p.image_url ? (imageMap[p.image_url] || p.image_url) : "",
     }));
     
     setProducts(transformedProducts);
