@@ -16,10 +16,15 @@ export default defineConfig(({ mode }) => ({
       "react": path.resolve(__dirname, "./node_modules/react"),
       "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom", "react/jsx-runtime"],
+    dedupe: ["react", "react-dom", "react/jsx-runtime", "@radix-ui/react-tooltip"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "@tanstack/react-query"],
+    include: ["react", "react-dom", "@tanstack/react-query", "@radix-ui/react-tooltip"],
     force: true,
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      }
+    }
   },
 }));
