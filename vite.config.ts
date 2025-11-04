@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ["react", "react-dom", "@tanstack/react-query", "@radix-ui/react-tooltip"],
-    force: true,
     esbuildOptions: {
       define: {
         global: 'globalThis'
