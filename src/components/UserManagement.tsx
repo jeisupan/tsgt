@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -12,17 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, UserPlus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Shield } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -53,10 +42,6 @@ const roleLabels: Record<string, string> = {
 export const UserManagement = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<string>("sales");
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -130,31 +115,6 @@ export const UserManagement = () => {
     }
   };
 
-  const handleInviteUser = async () => {
-    if (!inviteEmail) {
-      toast.error("Please enter an email address");
-      return;
-    }
-
-    setInviting(true);
-    try {
-      // Note: In production, you would create a proper invitation system
-      // For now, we'll just show instructions
-      toast.info(
-        "To add a new user:\n1. Have them sign up at the login page\n2. Then assign their role here",
-        { duration: 6000 }
-      );
-      
-      setInviteOpen(false);
-      setInviteEmail("");
-      setInviteRole("sales");
-    } catch (error: any) {
-      console.error("Error inviting user:", error);
-      toast.error("Failed to send invitation");
-    } finally {
-      setInviting(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -167,64 +127,11 @@ export const UserManagement = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              User Management
-            </CardTitle>
-            <CardDescription>Manage user access and roles</CardDescription>
-          </div>
-          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New User</DialogTitle>
-                <DialogDescription>
-                  Invite a new user to the system. They will need to sign up first.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="invite-email">Email Address</Label>
-                  <Input
-                    id="invite-email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invite-role">Default Role</Label>
-                  <Select value={inviteRole} onValueChange={setInviteRole}>
-                    <SelectTrigger id="invite-role">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sales">Sales</SelectItem>
-                      <SelectItem value="inventory">Inventory</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  onClick={handleInviteUser}
-                  disabled={inviting}
-                  className="w-full"
-                >
-                  {inviting ? "Sending..." : "Send Instructions"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          User Management
+        </CardTitle>
+        <CardDescription>Manage user access and roles for registered users</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
