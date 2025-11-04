@@ -68,6 +68,41 @@ export type Database = {
           },
         ]
       }
+      expense_particulars: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          expense_id: string
+          id: string
+          particular_name: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          expense_id: string
+          id?: string
+          particular_name: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          expense_id?: string
+          id?: string
+          particular_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_particulars_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "operations_expense"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inbound_transactions: {
         Row: {
           created_at: string
@@ -146,6 +181,7 @@ export type Database = {
           particulars: string
           plate_number: string | null
           remarks: string | null
+          supplier_id: string | null
           updated_at: string
           voucher_number: string
           voucher_type: string
@@ -161,6 +197,7 @@ export type Database = {
           particulars: string
           plate_number?: string | null
           remarks?: string | null
+          supplier_id?: string | null
           updated_at?: string
           voucher_number: string
           voucher_type: string
@@ -176,11 +213,20 @@ export type Database = {
           particulars?: string
           plate_number?: string | null
           remarks?: string | null
+          supplier_id?: string | null
           updated_at?: string
           voucher_number?: string
           voucher_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "operations_expense_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {

@@ -25,6 +25,7 @@ interface OperationsExpense {
   plate_number: string | null;
   amount: number;
   remarks: string | null;
+  supplier_id: string | null;
   created_at: string;
 }
 
