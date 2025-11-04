@@ -129,6 +129,45 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Check if user has a role, if not show pending message
+  if (!loading && !roleLoading && user && role === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+              <Shield className="h-8 w-8 text-yellow-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Pending Approval</h2>
+            <p className="text-gray-600 mb-4">
+              Thank you for signing up! Your account has been created successfully.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-blue-800">
+                Our administrators have been notified of your registration and will review your account shortly. 
+                You will receive an email once your account has been approved and a role has been assigned.
+              </p>
+            </div>
+            <p className="text-sm text-gray-500">
+              If you have any questions, please contact our support team.
+            </p>
+          </div>
+          <Button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate("/auth");
+            }}
+            variant="outline"
+            className="w-full"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (user) {
       fetchInventory();

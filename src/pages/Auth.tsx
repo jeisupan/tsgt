@@ -88,7 +88,7 @@ const Auth = () => {
 
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -104,7 +104,34 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Account created successfully! Please check your email to confirm.");
+        // Get user's IP address
+        let ipAddress = '';
+        try {
+          const ipResponse = await fetch('https://api.ipify.org?format=json');
+          const ipData = await ipResponse.json();
+          ipAddress = ipData.ip;
+        } catch (ipError) {
+          console.log('Could not fetch IP address');
+        }
+
+        // Notify admins about new signup
+        if (data.user) {
+          try {
+            await supabase.functions.invoke('notify-admin-signup', {
+              body: {
+                userId: data.user.id,
+                email: email,
+                fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
+                ipAddress: ipAddress
+              }
+            });
+          } catch (notifyError) {
+            console.error('Error notifying admins:', notifyError);
+            // Don't block signup if notification fails
+          }
+        }
+
+        toast.success("Account created successfully! Please wait for admin approval to access the system.");
         setIsSignUp(false);
       }
     } catch (error) {
