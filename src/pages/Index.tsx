@@ -144,8 +144,7 @@ const Index = () => {
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <p className="text-sm text-blue-800">
-                Our administrators have been notified of your registration and will review your account shortly. 
-                You will receive an email once your account has been approved and a role has been assigned.
+                The administrator is already informed of your sign up. Please wait for the necessary access to be granted.
               </p>
             </div>
             <p className="text-sm text-gray-500">
