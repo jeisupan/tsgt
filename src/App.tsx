@@ -16,9 +16,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <BrowserRouter>
-        <Toaster />
-        <Sonner />
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+          <Toaster />
+          <Sonner />
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
