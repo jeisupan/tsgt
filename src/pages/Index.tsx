@@ -99,13 +99,7 @@ const Index = () => {
   const { role, loading: roleLoading, hasAccess } = useUserRole();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [showHistory, setShowHistory] = useState(false);
-  const [showInventory, setShowInventory] = useState(false);
-  const [showCustomers, setShowCustomers] = useState(false);
-  const [showSuppliers, setShowSuppliers] = useState(false);
-  const [showExpenses, setShowExpenses] = useState(false);
-  const [showUsers, setShowUsers] = useState(false);
-  const [showProducts, setShowProducts] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string>("pos");
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
 
@@ -413,138 +407,92 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-4">
-            <div className="flex flex-wrap gap-2">{/* Navigation buttons remain below */}
+            <div className="flex flex-wrap gap-2">
+              {hasAccess(["sales", "admin", "super_admin"]) && (
+                <Button
+                  variant={activeMenu === "pos" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("pos")}
+                  className="gap-2"
+                >
+                  <Fuel className="h-5 w-5" />
+                  POS
+                </Button>
+              )}
             
               {hasAccess(["sales", "inventory", "finance", "admin", "super_admin"]) && (
                 <Button
-                  variant={showInventory ? "default" : "outline"}
-                  onClick={() => {
-                    setShowInventory(!showInventory);
-                    setShowHistory(false);
-                    setShowCustomers(false);
-                    setShowSuppliers(false);
-                    setShowExpenses(false);
-                    setShowUsers(false);
-                    setShowProducts(false);
-                  }}
+                  variant={activeMenu === "inventory" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("inventory")}
                   className="gap-2"
                 >
                   <Package className="h-5 w-5" />
-                  {showInventory ? "Back to POS" : "Inventory"}
+                  Inventory
                 </Button>
               )}
               
               {hasAccess(["sales", "finance", "admin", "super_admin"]) && (
                 <Button
-                  variant={showHistory ? "default" : "outline"}
-                  onClick={() => {
-                    setShowHistory(!showHistory);
-                    setShowInventory(false);
-                    setShowCustomers(false);
-                    setShowSuppliers(false);
-                    setShowExpenses(false);
-                    setShowUsers(false);
-                    setShowProducts(false);
-                  }}
+                  variant={activeMenu === "history" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("history")}
                   className="gap-2"
                 >
                   <Receipt className="h-5 w-5" />
-                  {showHistory ? "Back to POS" : "Order History"}
+                  Order History
                 </Button>
               )}
               
               {hasAccess(["sales", "admin", "super_admin"]) && (
                 <Button
-                  variant={showCustomers ? "default" : "outline"}
-                  onClick={() => {
-                    setShowCustomers(!showCustomers);
-                    setShowInventory(false);
-                    setShowHistory(false);
-                    setShowSuppliers(false);
-                    setShowExpenses(false);
-                    setShowUsers(false);
-                    setShowProducts(false);
-                  }}
+                  variant={activeMenu === "customers" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("customers")}
                   className="gap-2"
                 >
                   <Users className="h-5 w-5" />
-                  {showCustomers ? "Back to POS" : "Customers"}
+                  Customers
                 </Button>
               )}
               
               {hasAccess(["inventory", "admin", "super_admin"]) && (
                 <Button
-                  variant={showSuppliers ? "default" : "outline"}
-                  onClick={() => {
-                    setShowSuppliers(!showSuppliers);
-                    setShowInventory(false);
-                    setShowHistory(false);
-                    setShowCustomers(false);
-                    setShowExpenses(false);
-                    setShowUsers(false);
-                    setShowProducts(false);
-                  }}
+                  variant={activeMenu === "suppliers" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("suppliers")}
                   className="gap-2"
                 >
                   <Truck className="h-5 w-5" />
-                  {showSuppliers ? "Back to POS" : "Suppliers"}
+                  Suppliers
                 </Button>
               )}
               
               {hasAccess(["finance", "admin", "super_admin"]) && (
                 <Button
-                  variant={showExpenses ? "default" : "outline"}
-                  onClick={() => {
-                    setShowExpenses(!showExpenses);
-                    setShowInventory(false);
-                    setShowHistory(false);
-                    setShowCustomers(false);
-                    setShowSuppliers(false);
-                    setShowUsers(false);
-                    setShowProducts(false);
-                  }}
+                  variant={activeMenu === "expenses" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("expenses")}
                   className="gap-2"
                 >
                   <FileText className="h-5 w-5" />
-                  {showExpenses ? "Back to POS" : "Expenses"}
+                  Expenses
                 </Button>
               )}
               
               {hasAccess(["admin", "super_admin"]) && (
                 <Button
-                  variant={showProducts ? "default" : "outline"}
-                  onClick={() => {
-                    setShowProducts(!showProducts);
-                    setShowInventory(false);
-                    setShowHistory(false);
-                    setShowCustomers(false);
-                    setShowSuppliers(false);
-                    setShowExpenses(false);
-                    setShowUsers(false);
-                  }}
+                  variant={activeMenu === "products" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("products")}
                   className="gap-2"
                 >
                   <ShoppingBag className="h-5 w-5" />
-                  {showProducts ? "Back to POS" : "POS Items"}
+                  POS Items
                 </Button>
               )}
               
               {hasAccess(["super_admin"]) && (
                 <Button
-                  variant={showUsers ? "default" : "outline"}
-                  onClick={() => {
-                    setShowUsers(!showUsers);
-                    setShowInventory(false);
-                    setShowHistory(false);
-                    setShowCustomers(false);
-                    setShowSuppliers(false);
-                    setShowExpenses(false);
-                    setShowProducts(false);
-                  }}
+                  variant={activeMenu === "users" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("users")}
                   className="gap-2"
                 >
                   <Shield className="h-5 w-5" />
-                  {showUsers ? "Back to POS" : "Users"}
+                  Users
                 </Button>
               )}
             </div>
@@ -553,21 +501,21 @@ const Index = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        {showUsers ? (
+        {activeMenu === "users" ? (
           <UserManagement />
-        ) : showProducts ? (
+        ) : activeMenu === "products" ? (
           <ProductManagement />
-        ) : showInventory ? (
+        ) : activeMenu === "inventory" ? (
           <InventoryManagement />
-        ) : showHistory ? (
+        ) : activeMenu === "history" ? (
           <OrderHistory />
-        ) : showCustomers ? (
+        ) : activeMenu === "customers" ? (
           <CustomerManagement />
-        ) : showSuppliers ? (
+        ) : activeMenu === "suppliers" ? (
           <SupplierManagement />
-        ) : showExpenses ? (
+        ) : activeMenu === "expenses" ? (
           <OperationsExpense />
-        ) : hasAccess(["sales", "admin", "super_admin"]) ? (
+        ) : activeMenu === "pos" && hasAccess(["sales", "admin", "super_admin"]) ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
               <CategoryFilter
