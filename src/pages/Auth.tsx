@@ -65,6 +65,19 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate first name and last name
+      if (!firstName.trim()) {
+        toast.error("First name is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!lastName.trim()) {
+        toast.error("Last name is required");
+        setLoading(false);
+        return;
+      }
+
       // Validate password strength
       const passwordValidation = passwordSchema.safeParse(password);
       if (!passwordValidation.success) {
