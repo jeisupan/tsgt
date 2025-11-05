@@ -427,8 +427,8 @@ const Index = () => {
                 <Fuel className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Gas Refill Station
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Twinstar Gas Trading
                 </h1>
                 <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
               </div>
