@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -35,6 +36,7 @@ const particularSchema = z.object({
   supplier_id: z.string().min(1, "Supplier is required"),
   plate_number: z.string().max(20, "Plate number must be less than 20 characters").optional(),
   remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
+  is_taxable: z.boolean(),
 });
 
 interface Particular {
@@ -45,6 +47,9 @@ interface Particular {
   supplier_id: string;
   plate_number: string;
   remarks: string;
+  is_taxable: boolean;
+  amount_excluding_vat: string;
+  vat_amount: string;
 }
 
 interface Supplier {
@@ -88,7 +93,7 @@ export const OperationsExpenseDialog = ({
     encoder: "",
   });
   const [particulars, setParticulars] = useState<Particular[]>([
-    { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }
+    { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "", is_taxable: false, amount_excluding_vat: "0", vat_amount: "0" }
   ]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,6 +173,9 @@ export const OperationsExpenseDialog = ({
             supplier_id: p.supplier_id || "",
             plate_number: p.plate_number || "",
             remarks: p.remarks || "",
+            is_taxable: p.is_taxable || false,
+            amount_excluding_vat: p.amount_excluding_vat?.toString() || "0",
+            vat_amount: p.vat_amount?.toString() || "0",
           })));
         } else {
           // Fallback to old single particular format
@@ -178,6 +186,9 @@ export const OperationsExpenseDialog = ({
             supplier_id: editingExpense.supplier_id || "",
             plate_number: editingExpense.plate_number || "",
             remarks: editingExpense.remarks || "",
+            is_taxable: false,
+            amount_excluding_vat: "0",
+            vat_amount: "0",
           }]);
         }
       };
@@ -192,12 +203,12 @@ export const OperationsExpenseDialog = ({
         branch: "",
         encoder: prev.encoder,
       }));
-      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
+      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "", is_taxable: false, amount_excluding_vat: "0", vat_amount: "0" }]);
     }
   }, [editingExpense]);
 
   const addParticular = () => {
-    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
+    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "", is_taxable: false, amount_excluding_vat: "0", vat_amount: "0" }]);
   };
 
   const removeParticular = (index: number) => {
@@ -206,9 +217,29 @@ export const OperationsExpenseDialog = ({
     }
   };
 
-  const updateParticular = (index: number, field: keyof Particular, value: string) => {
+  const updateParticular = (index: number, field: keyof Particular, value: string | boolean) => {
     const updated = [...particulars];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Calculate VAT when amount changes or taxable status changes
+    if (field === 'amount' || field === 'is_taxable') {
+      const amount = parseFloat(field === 'amount' ? value as string : updated[index].amount);
+      const isTaxable = field === 'is_taxable' ? value as boolean : updated[index].is_taxable;
+      
+      if (!isNaN(amount) && amount > 0 && isTaxable) {
+        // Amount entered is total including VAT
+        // amount_excluding_vat = amount / 1.12
+        // vat_amount = amount - amount_excluding_vat
+        const amountExcludingVat = amount / 1.12;
+        const vatAmount = amount - amountExcludingVat;
+        updated[index].amount_excluding_vat = amountExcludingVat.toFixed(2);
+        updated[index].vat_amount = vatAmount.toFixed(2);
+      } else {
+        updated[index].amount_excluding_vat = "0";
+        updated[index].vat_amount = "0";
+      }
+    }
+    
     setParticulars(updated);
   };
 
@@ -315,6 +346,9 @@ export const OperationsExpenseDialog = ({
         supplier_id: p.supplier_id,
         plate_number: p.plate_number || null,
         remarks: p.remarks || null,
+        is_taxable: p.is_taxable,
+        amount_excluding_vat: p.is_taxable ? parseFloat(p.amount_excluding_vat) : null,
+        vat_amount: p.is_taxable ? parseFloat(p.vat_amount) : null,
       }));
 
       const { error: particularsError } = await supabase
@@ -519,6 +553,34 @@ export const OperationsExpenseDialog = ({
                             placeholder="Additional notes"
                           />
                         </div>
+                      </div>
+                      <div className="space-y-2 pt-2 border-t">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`is_taxable_${index}`}
+                            checked={particular.is_taxable}
+                            onCheckedChange={(checked) => updateParticular(index, "is_taxable", checked as boolean)}
+                          />
+                          <Label htmlFor={`is_taxable_${index}`} className="cursor-pointer">
+                            Taxable (includes 12% VAT)
+                          </Label>
+                        </div>
+                        {particular.is_taxable && parseFloat(particular.amount) > 0 && (
+                          <div className="bg-muted/50 rounded p-2 space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Amount excluding VAT:</span>
+                              <span className="font-medium">₱{parseFloat(particular.amount_excluding_vat).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">VAT (12%):</span>
+                              <span className="font-medium">₱{parseFloat(particular.vat_amount).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between pt-1 border-t border-border">
+                              <span className="font-semibold">Total:</span>
+                              <span className="font-semibold">₱{parseFloat(particular.amount).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {particulars.length > 1 && (
