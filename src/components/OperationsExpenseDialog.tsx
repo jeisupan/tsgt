@@ -85,7 +85,7 @@ export const OperationsExpenseDialog = ({
     voucher_type: "",
     date: new Date().toISOString().split("T")[0],
     branch: "",
-    encoder: "Current User",
+    encoder: "",
   });
   const [particulars, setParticulars] = useState<Particular[]>([
     { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }
@@ -95,7 +95,7 @@ export const OperationsExpenseDialog = ({
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
 
-  // Fetch suppliers
+  // Fetch suppliers and get current user
   useEffect(() => {
     const fetchSuppliers = async () => {
       setIsLoadingSuppliers(true);
@@ -115,8 +115,29 @@ export const OperationsExpenseDialog = ({
       }
     };
 
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Get user's profile for their name
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, first_name, last_name, email")
+          .eq("id", user.id)
+          .single();
+        
+        const userName = profile?.full_name || 
+                        `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 
+                        profile?.email || 
+                        user.email || 
+                        "Unknown User";
+        
+        setFormData(prev => ({ ...prev, encoder: userName }));
+      }
+    };
+
     if (open) {
       fetchSuppliers();
+      getCurrentUser();
     }
   }, [open]);
 
@@ -163,13 +184,14 @@ export const OperationsExpenseDialog = ({
       
       loadParticulars();
     } else {
-      setFormData({
+      // Reset form but keep encoder (will be set by useEffect)
+      setFormData(prev => ({
         voucher_number: "",
         voucher_type: "",
         date: new Date().toISOString().split("T")[0],
         branch: "",
-        encoder: "Current User",
-      });
+        encoder: prev.encoder,
+      }));
       setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
     }
   }, [editingExpense]);
@@ -342,15 +364,13 @@ export const OperationsExpenseDialog = ({
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="payment">Payment</SelectItem>
-                    <SelectItem value="reimbursement">Reimbursement</SelectItem>
-                    <SelectItem value="petty_cash">Petty Cash</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="check">Check</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="date">Date *</Label>
                 <Input
@@ -363,23 +383,21 @@ export const OperationsExpenseDialog = ({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="branch">Branch *</Label>
-                <Input
-                  id="branch"
+                <Select
                   value={formData.branch}
-                  onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                  placeholder="Enter branch"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="encoder">Encoder</Label>
-                <Input
-                  id="encoder"
-                  value={formData.encoder}
-                  onChange={(e) => setFormData({ ...formData, encoder: e.target.value })}
-                  placeholder="Encoder name"
-                  readOnly
-                />
+                  onValueChange={(value) => setFormData({ ...formData, branch: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="head_office">Head Office</SelectItem>
+                    <SelectItem value="parian">Parian</SelectItem>
+                    <SelectItem value="anos">Anos</SelectItem>
+                    <SelectItem value="san_antonio">San Antonio</SelectItem>
+                    <SelectItem value="bay">Bay</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
