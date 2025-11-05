@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -35,6 +36,9 @@ const particularSchema = z.object({
   supplier_id: z.string().min(1, "Supplier is required"),
   plate_number: z.string().max(20, "Plate number must be less than 20 characters").optional(),
   remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
+  is_taxable: z.boolean().optional(),
+  amount_excluding_vat: z.string().optional(),
+  vat_amount: z.string().optional(),
 });
 
 interface Particular {
@@ -45,6 +49,9 @@ interface Particular {
   supplier_id: string;
   plate_number: string;
   remarks: string;
+  is_taxable: boolean;
+  amount_excluding_vat: string;
+  vat_amount: string;
 }
 
 interface Supplier {
@@ -88,7 +95,7 @@ export const OperationsExpenseDialog = ({
     encoder: "",
   });
   const [particulars, setParticulars] = useState<Particular[]>([
-    { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }
+    { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "", is_taxable: false, amount_excluding_vat: "", vat_amount: "" }
   ]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,6 +175,9 @@ export const OperationsExpenseDialog = ({
             supplier_id: p.supplier_id || "",
             plate_number: p.plate_number || "",
             remarks: p.remarks || "",
+            is_taxable: p.is_taxable || false,
+            amount_excluding_vat: p.amount_excluding_vat?.toString() || "",
+            vat_amount: p.vat_amount?.toString() || "",
           })));
         } else {
           // Fallback to old single particular format
@@ -178,6 +188,9 @@ export const OperationsExpenseDialog = ({
             supplier_id: editingExpense.supplier_id || "",
             plate_number: editingExpense.plate_number || "",
             remarks: editingExpense.remarks || "",
+            is_taxable: false,
+            amount_excluding_vat: "",
+            vat_amount: "",
           }]);
         }
       };
@@ -192,12 +205,12 @@ export const OperationsExpenseDialog = ({
         branch: "",
         encoder: prev.encoder,
       }));
-      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
+      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "", is_taxable: false, amount_excluding_vat: "", vat_amount: "" }]);
     }
   }, [editingExpense]);
 
   const addParticular = () => {
-    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
+    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "", is_taxable: false, amount_excluding_vat: "", vat_amount: "" }]);
   };
 
   const removeParticular = (index: number) => {
@@ -206,9 +219,26 @@ export const OperationsExpenseDialog = ({
     }
   };
 
-  const updateParticular = (index: number, field: keyof Particular, value: string) => {
+  const updateParticular = (index: number, field: keyof Particular, value: string | boolean) => {
     const updated = [...particulars];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Calculate VAT breakdown when amount or is_taxable changes
+    if (field === 'amount' || field === 'is_taxable') {
+      const amount = field === 'amount' ? parseFloat(value as string) : parseFloat(updated[index].amount);
+      const isTaxable = field === 'is_taxable' ? value as boolean : updated[index].is_taxable;
+      
+      if (!isNaN(amount) && amount > 0 && isTaxable) {
+        const amountExcludingVat = amount / 1.12;
+        const vatAmount = amount - amountExcludingVat;
+        updated[index].amount_excluding_vat = amountExcludingVat.toFixed(2);
+        updated[index].vat_amount = vatAmount.toFixed(2);
+      } else {
+        updated[index].amount_excluding_vat = "";
+        updated[index].vat_amount = "";
+      }
+    }
+    
     setParticulars(updated);
   };
 
@@ -315,6 +345,9 @@ export const OperationsExpenseDialog = ({
         supplier_id: p.supplier_id,
         plate_number: p.plate_number || null,
         remarks: p.remarks || null,
+        is_taxable: p.is_taxable,
+        amount_excluding_vat: p.amount_excluding_vat ? parseFloat(p.amount_excluding_vat) : null,
+        vat_amount: p.vat_amount ? parseFloat(p.vat_amount) : null,
       }));
 
       const { error: particularsError } = await supabase
@@ -465,40 +498,70 @@ export const OperationsExpenseDialog = ({
                           </Button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor={`amount_${index}`}>Amount (₱) *</Label>
-                          <Input
-                            id={`amount_${index}`}
-                            type="number"
-                            step="0.01"
-                            value={particular.amount}
-                            onChange={(e) => updateParticular(index, "amount", e.target.value)}
-                            placeholder="0.00"
-                            required
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label htmlFor={`amount_${index}`}>Amount (₱) *</Label>
+                            <Input
+                              id={`amount_${index}`}
+                              type="number"
+                              step="0.01"
+                              value={particular.amount}
+                              onChange={(e) => updateParticular(index, "amount", e.target.value)}
+                              placeholder="0.00"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`category_${index}`}>Category</Label>
+                            <Select
+                              value={particular.category}
+                              onValueChange={(value) => updateParticular(index, "category", value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="utilities">Utilities</SelectItem>
+                                <SelectItem value="rent">Rent</SelectItem>
+                                <SelectItem value="fuel">Fuel</SelectItem>
+                                <SelectItem value="repairs">Repairs</SelectItem>
+                                <SelectItem value="maintenance">Maintenance</SelectItem>
+                                <SelectItem value="office_supplies">Office Supplies</SelectItem>
+                                <SelectItem value="transportation">Transportation</SelectItem>
+                                <SelectItem value="misc">Miscellaneous</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`is_taxable_${index}`}
+                            checked={particular.is_taxable}
+                            onCheckedChange={(checked) => updateParticular(index, "is_taxable", checked as boolean)}
                           />
+                          <Label htmlFor={`is_taxable_${index}`} className="cursor-pointer">
+                            Taxable (includes 12% VAT)
+                          </Label>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`category_${index}`}>Category</Label>
-                          <Select
-                            value={particular.category}
-                            onValueChange={(value) => updateParticular(index, "category", value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="utilities">Utilities</SelectItem>
-                              <SelectItem value="rent">Rent</SelectItem>
-                              <SelectItem value="fuel">Fuel</SelectItem>
-                              <SelectItem value="repairs">Repairs</SelectItem>
-                              <SelectItem value="maintenance">Maintenance</SelectItem>
-                              <SelectItem value="office_supplies">Office Supplies</SelectItem>
-                              <SelectItem value="transportation">Transportation</SelectItem>
-                              <SelectItem value="misc">Miscellaneous</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        
+                        {particular.is_taxable && particular.amount_excluding_vat && (
+                          <div className="bg-muted p-3 rounded-md space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Amount excluding VAT:</span>
+                              <span className="font-medium">₱{parseFloat(particular.amount_excluding_vat).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">12% VAT:</span>
+                              <span className="font-medium">₱{parseFloat(particular.vat_amount).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between pt-1 border-t">
+                              <span className="font-semibold">Total Amount:</span>
+                              <span className="font-semibold">₱{parseFloat(particular.amount).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">

@@ -71,36 +71,45 @@ export type Database = {
       expense_particulars: {
         Row: {
           amount: number
+          amount_excluding_vat: number | null
           category: string | null
           created_at: string
           expense_id: string
           id: string
+          is_taxable: boolean | null
           particular_name: string
           plate_number: string | null
           remarks: string | null
           supplier_id: string | null
+          vat_amount: number | null
         }
         Insert: {
           amount: number
+          amount_excluding_vat?: number | null
           category?: string | null
           created_at?: string
           expense_id: string
           id?: string
+          is_taxable?: boolean | null
           particular_name: string
           plate_number?: string | null
           remarks?: string | null
           supplier_id?: string | null
+          vat_amount?: number | null
         }
         Update: {
           amount?: number
+          amount_excluding_vat?: number | null
           category?: string | null
           created_at?: string
           expense_id?: string
           id?: string
+          is_taxable?: boolean | null
           particular_name?: string
           plate_number?: string | null
           remarks?: string | null
           supplier_id?: string | null
+          vat_amount?: number | null
         }
         Relationships: [
           {
