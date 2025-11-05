@@ -22,6 +22,7 @@ export const PendingUsersNotification = ({ onViewUsers, isVisible }: PendingUser
   const [pendingUsers, setPendingUsers] = useState<Array<{ email: string; full_name: string }>>([]);
 
   useEffect(() => {
+    console.log('PendingUsersNotification - isVisible:', isVisible);
     if (isVisible) {
       checkPendingUsers();
     }
@@ -29,20 +30,26 @@ export const PendingUsersNotification = ({ onViewUsers, isVisible }: PendingUser
 
   const checkPendingUsers = async () => {
     try {
+      console.log('Fetching profiles...');
       // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, email, full_name");
+
+      console.log('Profiles fetched:', profiles, 'Error:', profilesError);
 
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
         return;
       }
 
+      console.log('Fetching user roles...');
       // Get all user roles
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id");
+
+      console.log('Roles fetched:', roles, 'Error:', rolesError);
 
       if (rolesError) {
         console.error("Error fetching roles:", rolesError);
@@ -54,12 +61,18 @@ export const PendingUsersNotification = ({ onViewUsers, isVisible }: PendingUser
       // Find users without roles
       const usersWithoutRoles = profiles.filter(profile => !userIdsWithRoles.has(profile.id));
       
+      console.log('Users without roles:', usersWithoutRoles);
+      console.log('Pending count:', usersWithoutRoles.length);
+      
       setPendingCount(usersWithoutRoles.length);
       setPendingUsers(usersWithoutRoles);
       
       // Show dialog only if there are pending users
       if (usersWithoutRoles.length > 0) {
+        console.log('Opening dialog with pending users');
         setOpen(true);
+      } else {
+        console.log('No pending users found');
       }
     } catch (error) {
       console.error("Error checking pending users:", error);

@@ -133,7 +133,9 @@ const Index = () => {
 
   // Show pending users notification for super_admins
   useEffect(() => {
+    console.log('Role check - role:', role, 'loading:', loading, 'roleLoading:', roleLoading);
     if (role === "super_admin" && !loading && !roleLoading) {
+      console.log('Setting showPendingNotification to true');
       setShowPendingNotification(true);
     }
   }, [role, loading, roleLoading]);
