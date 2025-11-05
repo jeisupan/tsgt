@@ -21,8 +21,6 @@ const expenseSchema = z.object({
   voucher_number: z.string().trim().min(1, "Voucher number is required").max(50, "Voucher number must be less than 50 characters"),
   voucher_type: z.string().min(1, "Voucher type is required"),
   branch: z.string().trim().min(1, "Branch is required").max(100, "Branch must be less than 100 characters"),
-  plate_number: z.string().max(20, "Plate number must be less than 20 characters").optional(),
-  remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
   encoder: z.string(),
   date: z.string(),
 });
@@ -35,6 +33,8 @@ const particularSchema = z.object({
   }, "Amount must be a positive number"),
   category: z.string().optional(),
   supplier_id: z.string().min(1, "Supplier is required"),
+  plate_number: z.string().max(20, "Plate number must be less than 20 characters").optional(),
+  remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
 });
 
 interface Particular {
@@ -43,6 +43,8 @@ interface Particular {
   amount: string;
   category: string;
   supplier_id: string;
+  plate_number: string;
+  remarks: string;
 }
 
 interface Supplier {
@@ -84,11 +86,9 @@ export const OperationsExpenseDialog = ({
     date: new Date().toISOString().split("T")[0],
     branch: "",
     encoder: "Current User",
-    plate_number: "",
-    remarks: "",
   });
   const [particulars, setParticulars] = useState<Particular[]>([
-    { particular_name: "", amount: "", category: "", supplier_id: "" }
+    { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }
   ]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,8 +129,6 @@ export const OperationsExpenseDialog = ({
         date: editingExpense.date,
         branch: editingExpense.branch,
         encoder: editingExpense.encoder,
-        plate_number: editingExpense.plate_number || "",
-        remarks: editingExpense.remarks || "",
       });
       
       // Load existing particulars if editing
@@ -147,6 +145,8 @@ export const OperationsExpenseDialog = ({
             amount: p.amount.toString(),
             category: p.category || "",
             supplier_id: p.supplier_id || "",
+            plate_number: p.plate_number || "",
+            remarks: p.remarks || "",
           })));
         } else {
           // Fallback to old single particular format
@@ -155,6 +155,8 @@ export const OperationsExpenseDialog = ({
             amount: editingExpense.amount.toString(),
             category: editingExpense.category,
             supplier_id: editingExpense.supplier_id || "",
+            plate_number: editingExpense.plate_number || "",
+            remarks: editingExpense.remarks || "",
           }]);
         }
       };
@@ -167,15 +169,13 @@ export const OperationsExpenseDialog = ({
         date: new Date().toISOString().split("T")[0],
         branch: "",
         encoder: "Current User",
-        plate_number: "",
-        remarks: "",
       });
-      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "" }]);
+      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
     }
   }, [editingExpense]);
 
   const addParticular = () => {
-    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "" }]);
+    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "", plate_number: "", remarks: "" }]);
   };
 
   const removeParticular = (index: number) => {
@@ -246,8 +246,8 @@ export const OperationsExpenseDialog = ({
         date: formData.date,
         branch: formData.branch,
         encoder: formData.encoder,
-        plate_number: formData.plate_number || null,
-        remarks: formData.remarks || null,
+        plate_number: particulars[0].plate_number || null,
+        remarks: particulars[0].remarks || null,
         supplier_id: particulars[0].supplier_id,
         amount: totalAmount,
         // Keep old format for backward compatibility
@@ -291,6 +291,8 @@ export const OperationsExpenseDialog = ({
         amount: parseFloat(p.amount),
         category: p.category || null,
         supplier_id: p.supplier_id,
+        plate_number: p.plate_number || null,
+        remarks: p.remarks || null,
       }));
 
       const { error: particularsError } = await supabase
@@ -377,29 +379,6 @@ export const OperationsExpenseDialog = ({
                   onChange={(e) => setFormData({ ...formData, encoder: e.target.value })}
                   placeholder="Encoder name"
                   readOnly
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4 border-b pb-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="plate_number">Plate Number</Label>
-                <Input
-                  id="plate_number"
-                  value={formData.plate_number}
-                  onChange={(e) => setFormData({ ...formData, plate_number: e.target.value })}
-                  placeholder="Enter plate number or N/A"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="remarks">Remarks</Label>
-                <Input
-                  id="remarks"
-                  value={formData.remarks}
-                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  placeholder="Additional notes"
                 />
               </div>
             </div>
@@ -501,6 +480,26 @@ export const OperationsExpenseDialog = ({
                               <SelectItem value="misc">Miscellaneous</SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor={`plate_number_${index}`}>Plate Number</Label>
+                          <Input
+                            id={`plate_number_${index}`}
+                            value={particular.plate_number}
+                            onChange={(e) => updateParticular(index, "plate_number", e.target.value)}
+                            placeholder="Enter plate number or N/A"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`remarks_${index}`}>Remarks</Label>
+                          <Input
+                            id={`remarks_${index}`}
+                            value={particular.remarks}
+                            onChange={(e) => updateParticular(index, "remarks", e.target.value)}
+                            placeholder="Additional notes"
+                          />
                         </div>
                       </div>
                     </div>

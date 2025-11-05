@@ -76,6 +76,8 @@ export type Database = {
           expense_id: string
           id: string
           particular_name: string
+          plate_number: string | null
+          remarks: string | null
           supplier_id: string | null
         }
         Insert: {
@@ -85,6 +87,8 @@ export type Database = {
           expense_id: string
           id?: string
           particular_name: string
+          plate_number?: string | null
+          remarks?: string | null
           supplier_id?: string | null
         }
         Update: {
@@ -94,6 +98,8 @@ export type Database = {
           expense_id?: string
           id?: string
           particular_name?: string
+          plate_number?: string | null
+          remarks?: string | null
           supplier_id?: string | null
         }
         Relationships: [
