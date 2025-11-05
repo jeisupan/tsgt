@@ -8,29 +8,29 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      overlay: true,
+    },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(), 
+    mode === "development" && componentTagger()
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "react": path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom", "react/jsx-runtime"],
+    dedupe: ["react", "react-dom"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "@tanstack/react-query"],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis'
-      }
-    },
-    force: true
+    include: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query"],
+    force: true,
   },
   build: {
     commonjsOptions: {
       include: [/node_modules/],
-      transformMixedEsModules: true
+      transformMixedEsModules: true,
     }
   },
+  clearScreen: false,
 }));
