@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { UserManagement } from "@/components/UserManagement";
+import { PendingUsersNotification } from "@/components/PendingUsersNotification";
 import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
 import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
 import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
@@ -102,6 +103,7 @@ const Index = () => {
   const [activeMenu, setActiveMenu] = useState<string>("pos");
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [showPendingNotification, setShowPendingNotification] = useState(false);
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
@@ -128,6 +130,13 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Show pending users notification for super_admins
+  useEffect(() => {
+    if (role === "super_admin" && !loading && !roleLoading) {
+      setShowPendingNotification(true);
+    }
+  }, [role, loading, roleLoading]);
 
   // Check if user has a role, if not show pending message
   if (!loading && !roleLoading && user && role === null) {
@@ -419,6 +428,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {role === "super_admin" && (
+        <PendingUsersNotification
+          isVisible={showPendingNotification}
+          onViewUsers={() => setActiveMenu("users")}
+        />
+      )}
       <header className="border-b border-border bg-card shadow-sm">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
