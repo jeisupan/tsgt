@@ -76,6 +76,7 @@ export type Database = {
           expense_id: string
           id: string
           particular_name: string
+          supplier_id: string | null
         }
         Insert: {
           amount: number
@@ -84,6 +85,7 @@ export type Database = {
           expense_id: string
           id?: string
           particular_name: string
+          supplier_id?: string | null
         }
         Update: {
           amount?: number
@@ -92,6 +94,7 @@ export type Database = {
           expense_id?: string
           id?: string
           particular_name?: string
+          supplier_id?: string | null
         }
         Relationships: [
           {
@@ -99,6 +102,13 @@ export type Database = {
             columns: ["expense_id"]
             isOneToOne: false
             referencedRelation: "operations_expense"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_particulars_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]

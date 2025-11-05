@@ -25,7 +25,6 @@ const expenseSchema = z.object({
   remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
   encoder: z.string(),
   date: z.string(),
-  supplier_id: z.string().min(1, "Supplier is required"),
 });
 
 const particularSchema = z.object({
@@ -35,6 +34,7 @@ const particularSchema = z.object({
     return !isNaN(num) && num > 0 && num <= 10000000;
   }, "Amount must be a positive number"),
   category: z.string().optional(),
+  supplier_id: z.string().min(1, "Supplier is required"),
 });
 
 interface Particular {
@@ -42,6 +42,7 @@ interface Particular {
   particular_name: string;
   amount: string;
   category: string;
+  supplier_id: string;
 }
 
 interface Supplier {
@@ -85,10 +86,9 @@ export const OperationsExpenseDialog = ({
     encoder: "Current User",
     plate_number: "",
     remarks: "",
-    supplier_id: "",
   });
   const [particulars, setParticulars] = useState<Particular[]>([
-    { particular_name: "", amount: "", category: "" }
+    { particular_name: "", amount: "", category: "", supplier_id: "" }
   ]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,7 +131,6 @@ export const OperationsExpenseDialog = ({
         encoder: editingExpense.encoder,
         plate_number: editingExpense.plate_number || "",
         remarks: editingExpense.remarks || "",
-        supplier_id: editingExpense.supplier_id || "",
       });
       
       // Load existing particulars if editing
@@ -147,6 +146,7 @@ export const OperationsExpenseDialog = ({
             particular_name: p.particular_name,
             amount: p.amount.toString(),
             category: p.category || "",
+            supplier_id: p.supplier_id || "",
           })));
         } else {
           // Fallback to old single particular format
@@ -154,6 +154,7 @@ export const OperationsExpenseDialog = ({
             particular_name: editingExpense.particulars,
             amount: editingExpense.amount.toString(),
             category: editingExpense.category,
+            supplier_id: editingExpense.supplier_id || "",
           }]);
         }
       };
@@ -168,14 +169,13 @@ export const OperationsExpenseDialog = ({
         encoder: "Current User",
         plate_number: "",
         remarks: "",
-        supplier_id: "",
       });
-      setParticulars([{ particular_name: "", amount: "", category: "" }]);
+      setParticulars([{ particular_name: "", amount: "", category: "", supplier_id: "" }]);
     }
   }, [editingExpense]);
 
   const addParticular = () => {
-    setParticulars([...particulars, { particular_name: "", amount: "", category: "" }]);
+    setParticulars([...particulars, { particular_name: "", amount: "", category: "", supplier_id: "" }]);
   };
 
   const removeParticular = (index: number) => {
@@ -199,15 +199,14 @@ export const OperationsExpenseDialog = ({
 
   const handleSupplierAdded = (supplierId: string, supplierName: string) => {
     setSuppliers([...suppliers, { id: supplierId, name: supplierName }]);
-    setFormData({ ...formData, supplier_id: supplierId });
-    toast.success("Supplier added and selected");
+    toast.success("Supplier added successfully");
   };
 
   const isFormValid = () => {
     const hasValidFormData = formData.voucher_number && formData.voucher_type && 
-                             formData.branch && formData.supplier_id;
+                             formData.branch;
     const hasValidParticulars = particulars.length > 0 && 
-                                particulars.every(p => p.particular_name && p.amount);
+                                particulars.every(p => p.particular_name && p.amount && p.supplier_id);
     return hasValidFormData && hasValidParticulars;
   };
 
@@ -249,7 +248,7 @@ export const OperationsExpenseDialog = ({
         encoder: formData.encoder,
         plate_number: formData.plate_number || null,
         remarks: formData.remarks || null,
-        supplier_id: formData.supplier_id,
+        supplier_id: particulars[0].supplier_id,
         amount: totalAmount,
         // Keep old format for backward compatibility
         particulars: particulars[0].particular_name,
@@ -291,6 +290,7 @@ export const OperationsExpenseDialog = ({
         particular_name: p.particular_name,
         amount: parseFloat(p.amount),
         category: p.category || null,
+        supplier_id: p.supplier_id,
       }));
 
       const { error: particularsError } = await supabase
@@ -383,41 +383,6 @@ export const OperationsExpenseDialog = ({
           </div>
 
           <div className="space-y-4 border-b pb-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Supplier Information</h3>
-            </div>
-            <div className="flex gap-2">
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="supplier_id">Supplier *</Label>
-                <Select
-                  value={formData.supplier_id}
-                  onValueChange={(value) => setFormData({ ...formData, supplier_id: value })}
-                  disabled={isLoadingSuppliers}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={isLoadingSuppliers ? "Loading..." : "Select supplier"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers.map((supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsSupplierDialogOpen(true)}
-                  title="Add new supplier"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="plate_number">Plate Number</Label>
@@ -470,6 +435,38 @@ export const OperationsExpenseDialog = ({
                           placeholder="e.g., Fuel for delivery truck"
                           required
                         />
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 space-y-2">
+                          <Label htmlFor={`supplier_${index}`}>Supplier *</Label>
+                          <Select
+                            value={particular.supplier_id}
+                            onValueChange={(value) => updateParticular(index, "supplier_id", value)}
+                            disabled={isLoadingSuppliers}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={isLoadingSuppliers ? "Loading..." : "Select supplier"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {suppliers.map((supplier) => (
+                                <SelectItem key={supplier.id} value={supplier.id}>
+                                  {supplier.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setIsSupplierDialogOpen(true)}
+                            title="Add new supplier"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
