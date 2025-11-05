@@ -39,6 +39,11 @@ export const PendingUsersNotification = ({ onViewUsers, isVisible }: PendingUser
         return;
       }
 
+      if (!profiles || profiles.length === 0) {
+        console.log("No profiles found");
+        return;
+      }
+
       // Get all user roles
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
@@ -52,13 +57,16 @@ export const PendingUsersNotification = ({ onViewUsers, isVisible }: PendingUser
       const userIdsWithRoles = new Set(roles?.map(r => r.user_id) || []);
       
       // Find users without roles
-      const usersWithoutRoles = profiles.filter(profile => !userIdsWithRoles.has(profile.id));
+      const usersWithoutRoles = profiles?.filter(profile => !userIdsWithRoles.has(profile.id)) || [];
+      
+      console.log("Pending users found:", usersWithoutRoles);
       
       setPendingCount(usersWithoutRoles.length);
       setPendingUsers(usersWithoutRoles);
       
       // Show dialog only if there are pending users
       if (usersWithoutRoles.length > 0) {
+        console.log("Opening notification dialog for", usersWithoutRoles.length, "users");
         setOpen(true);
       }
     } catch (error) {
