@@ -24,6 +24,13 @@ export default defineConfig(({ mode }) => ({
       define: {
         global: 'globalThis'
       }
+    },
+    force: true
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
     }
   },
 }));
