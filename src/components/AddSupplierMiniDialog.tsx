@@ -11,10 +11,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const supplierSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
-  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
-  phone: z.string().trim().min(1, "Phone number is required").max(20, "Phone number must be less than 20 characters"),
-  tin_number: z.string().trim().min(1, "TIN number is required").max(50, "TIN must be less than 50 characters"),
-  address: z.string().trim().max(500, "Address must be less than 500 characters").optional(),
+  email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters").optional().or(z.literal('')),
+  phone: z.string().regex(/^[0-9\-\+\(\)\s]*$/, "Phone must contain only numbers and standard formatting characters").max(20, "Phone must be less than 20 characters").optional().or(z.literal('')),
+  tin_number: z.string().max(50, "TIN must be less than 50 characters").optional().or(z.literal('')),
+  address: z.string().max(500, "Address must be less than 500 characters").optional().or(z.literal('')),
 });
 
 interface AddSupplierMiniDialogProps {
@@ -154,43 +154,40 @@ export const AddSupplierMiniDialog = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="supplier@example.com"
-              required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="09XX XXX XXXX"
-                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tin_number">TIN Number *</Label>
+              <Label htmlFor="tin_number">TIN Number</Label>
               <Input
                 id="tin_number"
                 value={formData.tin_number}
                 onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
                 placeholder="XXX-XXX-XXX"
-                required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Address (Optional)</Label>
+            <Label htmlFor="address">Address</Label>
             <Input
               id="address"
               value={formData.address}
