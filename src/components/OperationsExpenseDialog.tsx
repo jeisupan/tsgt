@@ -522,14 +522,30 @@ export const OperationsExpenseDialog = ({
                                 <SelectValue placeholder="Select" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="utilities">Utilities</SelectItem>
-                                <SelectItem value="rent">Rent</SelectItem>
-                                <SelectItem value="fuel">Fuel</SelectItem>
-                                <SelectItem value="repairs">Repairs</SelectItem>
-                                <SelectItem value="maintenance">Maintenance</SelectItem>
-                                <SelectItem value="office_supplies">Office Supplies</SelectItem>
-                                <SelectItem value="transportation">Transportation</SelectItem>
-                                <SelectItem value="misc">Miscellaneous</SelectItem>
+                                <SelectItem value="professional_fee">Professional Fee</SelectItem>
+                                <SelectItem value="salaries_wages">Salaries & Wages</SelectItem>
+                                <SelectItem value="taxes_fees_licenses">Taxes, Fees & Licenses</SelectItem>
+                                <SelectItem value="gas_oil_expense">Gas & Oil Expense</SelectItem>
+                                <SelectItem value="communication_expense">Communication Expense</SelectItem>
+                                <SelectItem value="passways_parking_toll">Passways, Parking Fees & Toll Fees</SelectItem>
+                                <SelectItem value="repair_maintenance_building">Repair & Maintenance - Building</SelectItem>
+                                <SelectItem value="repair_maintenance_vehicles">Repair & Maintenance - Vehicles</SelectItem>
+                                <SelectItem value="sss_phic_hdmf">SSS, PHIC & HDMF</SelectItem>
+                                <SelectItem value="office_supplies">Office Supplies Expense</SelectItem>
+                                <SelectItem value="cash_advance_vale">Cash Advances to Employees - Vale</SelectItem>
+                                <SelectItem value="cash_advance_loan">Cash Advances to Employees - Loan</SelectItem>
+                                <SelectItem value="purchases_accessories">Purchases: Accessories, Cylinders & Materials</SelectItem>
+                                <SelectItem value="purchases_tools">Purchases: Tools & Equipment</SelectItem>
+                                <SelectItem value="allowance_expense">Allowance Expense</SelectItem>
+                                <SelectItem value="cylinder_refund">Customer Cylinder Refund</SelectItem>
+                                <SelectItem value="utilities">Utilities: Electricity and Water Expenses</SelectItem>
+                                <SelectItem value="representation_expense">Representation Expense</SelectItem>
+                                <SelectItem value="quota_incentives">Quota Incentives</SelectItem>
+                                <SelectItem value="transportation_expense">Transportation Expense</SelectItem>
+                                <SelectItem value="miscellaneous">Miscellaneous Expense</SelectItem>
+                                <SelectItem value="rental_fee">Rental Fee Expense</SelectItem>
+                                <SelectItem value="thirteenth_month">13th Month Pay</SelectItem>
+                                <SelectItem value="input_tax">Input Tax</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
