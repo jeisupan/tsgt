@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAutoLogout } from "@/hooks/useAutoLogout";
 import { UserManagement } from "@/components/UserManagement";
 import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
 import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
@@ -102,6 +103,9 @@ const Index = () => {
   const [activeMenu, setActiveMenu] = useState<string>("pos");
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  
+  // Auto logout on inactivity (15 min) and tab/browser close
+  useAutoLogout();
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
