@@ -8,11 +8,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const productSchema = z.object({
-  product_id: z.string()
-    .trim()
-    .min(1, "Product ID is required")
-    .max(50, "Product ID must be less than 50 characters")
-    .regex(/^[A-Za-z0-9-_]+$/, "Product ID must contain only letters, numbers, dashes, and underscores"),
   name: z.string()
     .trim()
     .min(1, "Product name is required")
@@ -47,7 +42,6 @@ interface ProductDialogProps {
 
 export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: ProductDialogProps) => {
   const [formData, setFormData] = useState({
-    product_id: "",
     name: "",
     price: "",
     category: "",
@@ -58,14 +52,12 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
   useEffect(() => {
     if (product) {
       setFormData({
-        product_id: product.product_id,
         name: product.name,
         price: product.price.toString(),
         category: product.category,
       });
     } else {
       setFormData({
-        product_id: "",
         name: "",
         price: "",
         category: "",
@@ -91,7 +83,6 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
 
     // Validate form data with Zod
     const validation = productSchema.safeParse({
-      product_id: formData.product_id,
       name: formData.name,
       price: parseFloat(formData.price),
       category: formData.category,
@@ -111,7 +102,7 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
       // Upload image if a new file is selected
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${formData.product_id}-${Date.now()}.${fileExt}`;
+        const fileName = `product-${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(fileName, imageFile);
@@ -134,7 +125,6 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
       }
 
       const productData = {
-        product_id: formData.product_id,
         name: formData.name,
         price: parseFloat(formData.price),
         category: formData.category,
@@ -174,16 +164,14 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
           <DialogTitle>{product ? "Edit Product" : "Add New Product"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="product_id">Product ID</Label>
-            <Input
-              id="product_id"
-              value={formData.product_id}
-              onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-              required
-              disabled={!!product}
-            />
-          </div>
+          {product && (
+            <div className="space-y-2">
+              <Label>Product ID</Label>
+              <div className="px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground">
+                {product.product_id}
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input

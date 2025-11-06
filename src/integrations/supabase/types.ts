@@ -397,7 +397,7 @@ export type Database = {
           image_url?: string | null
           name: string
           price: number
-          product_id: string
+          product_id?: string
           updated_at?: string
         }
         Update: {
