@@ -19,7 +19,6 @@ import {
 
 interface Product {
   id: string;
-  product_id: string;
   name: string;
   price: number;
   category: string;

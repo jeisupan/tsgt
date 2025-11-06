@@ -13,7 +13,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 interface ProductFromDB {
   id: string;
-  product_id: string;
   name: string;
   price: number;
   category: string;
@@ -150,7 +149,7 @@ export const InventoryManagement = () => {
       return;
     }
 
-    const product = products.find(p => p.product_id === inboundProductId);
+    const product = products.find(p => p.id === inboundProductId);
     if (!product) return;
 
     try {
@@ -224,7 +223,7 @@ export const InventoryManagement = () => {
       return;
     }
 
-    const product = products.find(p => p.product_id === outboundProductId);
+    const product = products.find(p => p.id === outboundProductId);
     if (!product) return;
 
     try {
@@ -342,7 +341,7 @@ export const InventoryManagement = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {products.map((product) => (
-                      <SelectItem key={product.product_id} value={product.product_id}>
+                      <SelectItem key={product.id} value={product.id}>
                         {product.name}
                       </SelectItem>
                     ))}
@@ -449,7 +448,7 @@ export const InventoryManagement = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {products.map((product) => (
-                      <SelectItem key={product.product_id} value={product.product_id}>
+                      <SelectItem key={product.id} value={product.id}>
                         {product.name}
                       </SelectItem>
                     ))}

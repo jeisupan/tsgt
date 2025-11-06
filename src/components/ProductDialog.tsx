@@ -26,7 +26,6 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface Product {
   id: string;
-  product_id: string;
   name: string;
   price: number;
   category: string;
@@ -168,7 +167,7 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
             <div className="space-y-2">
               <Label>Product ID</Label>
               <div className="px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground">
-                {product.product_id}
+                {product.id}
               </div>
             </div>
           )}

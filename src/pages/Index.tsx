@@ -250,7 +250,7 @@ const Index = () => {
     };
     
     const transformedProducts: Product[] = data.map((p) => ({
-      id: p.product_id,
+      id: p.id,
       name: p.name,
       price: Number(p.price),
       category: p.category,
