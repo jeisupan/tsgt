@@ -428,7 +428,7 @@ const Index = () => {
               </div>
               <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Twinstar Gas Trading
+                  Business Management System
                 </h1>
                 <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
               </div>
