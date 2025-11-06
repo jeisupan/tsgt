@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface PasswordStrengthIndicatorProps {
   password: string;
@@ -104,7 +104,12 @@ export const PasswordStrengthIndicator = ({ password }: PasswordStrengthIndicato
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Progress value={strength.percentage} className="h-2" />
+        <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <div 
+            className={cn("h-full transition-all duration-300", strength.color)}
+            style={{ width: `${strength.percentage}%` }}
+          />
+        </div>
         <span className="text-sm font-medium min-w-16">{strength.label}</span>
       </div>
       {strength.feedback.length > 0 && (
