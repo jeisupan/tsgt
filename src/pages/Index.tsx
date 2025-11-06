@@ -516,7 +516,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["admin", "super_admin"]) && (
+              {hasAccess(["sales", "admin", "super_admin"]) && (
                 <Button
                   variant={activeMenu === "products" ? "default" : "outline"}
                   onClick={() => setActiveMenu("products")}
