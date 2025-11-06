@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
+import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 
 const passwordSchema = z.string()
   .min(12, "Password must be at least 12 characters")
@@ -264,6 +265,7 @@ const Auth = () => {
                   minLength={12}
                   placeholder="Min 12 chars with uppercase, lowercase, number, and symbol"
                 />
+                <PasswordStrengthIndicator password={newPassword} />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Updating password..." : "Update Password"}
@@ -321,6 +323,7 @@ const Auth = () => {
                   minLength={12}
                   placeholder={isSignUp ? "Min 12 chars with uppercase, lowercase, number, and symbol" : ""}
                 />
+                {isSignUp && <PasswordStrengthIndicator password={password} />}
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
