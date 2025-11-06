@@ -135,7 +135,6 @@ export const ProductManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Image</TableHead>
-                <TableHead>Product ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Price</TableHead>
@@ -154,7 +153,6 @@ export const ProductManagement = () => {
                       />
                     )}
                   </TableCell>
-                  <TableCell>{product.product_id}</TableCell>
                   <TableCell>{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>₱{product.price.toFixed(2)}</TableCell>
