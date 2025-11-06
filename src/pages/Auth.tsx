@@ -225,9 +225,14 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Password updated successfully!");
+        // Sign out the user after password reset
+        await supabase.auth.signOut();
+        
+        toast.success("Password updated successfully! Please log in with your new password.");
         setIsResettingPassword(false);
-        navigate("/");
+        setNewPassword("");
+        setEmail("");
+        setPassword("");
       }
     } catch (error) {
       toast.error("An error occurred while resetting password");
