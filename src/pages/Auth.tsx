@@ -34,7 +34,20 @@ const Auth = () => {
     
     if (type === 'recovery') {
       setIsResettingPassword(true);
+      // Clear the URL hash to prevent issues
+      window.history.replaceState(null, '', window.location.pathname);
     }
+
+    // Listen for auth state changes to handle recovery flow
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
