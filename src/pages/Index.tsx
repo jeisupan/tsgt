@@ -434,7 +434,7 @@ const Index = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Business Management System
                 </h1>
-                <p className="text-muted-foreground mt-1">LPG Cylinder Sales & Refills</p>
+                <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
