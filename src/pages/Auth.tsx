@@ -28,19 +28,46 @@ const Auth = () => {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
+    // Check for existing session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      // Check if this is a recovery session
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      
+      if (session && type === 'recovery') {
+        console.log('Existing recovery session detected');
+        setIsResettingPassword(true);
+      }
+    });
+
     // Check if user is coming from password reset email
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const type = hashParams.get('type');
+    const accessToken = hashParams.get('access_token');
     
-    if (type === 'recovery') {
+    console.log('Auth page loaded, checking recovery:', { type, hasToken: !!accessToken });
+    
+    if (type === 'recovery' && accessToken) {
+      console.log('Recovery detected, setting reset mode');
       setIsResettingPassword(true);
-      // Clear the URL hash to prevent issues
-      window.history.replaceState(null, '', window.location.pathname);
+      // Don't clear the hash yet - keep it until the form is shown
+      setTimeout(() => {
+        window.history.replaceState(null, '', window.location.pathname);
+      }, 1000);
     }
 
     // Listen for auth state changes to handle recovery flow
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, 'Has session:', !!session);
+      
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('PASSWORD_RECOVERY event detected');
+        setIsResettingPassword(true);
+      }
+      
+      // If user has a session but we're in recovery mode, keep them on this page
+      if (session && type === 'recovery') {
+        console.log('User authenticated via recovery link, staying on reset page');
         setIsResettingPassword(true);
       }
     });
