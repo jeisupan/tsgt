@@ -430,7 +430,7 @@ const Index = () => {
       // Create outbound transactions for each item (sale) and update inventory
       for (const item of cartItems) {
         // Insert outbound transaction
-        await supabase.from("outbound_transactions").insert({
+        const { error: outboundError } = await supabase.from("outbound_transactions").insert({
           product_id: item.id,
           product_name: item.name,
           quantity: item.quantity,
@@ -438,18 +438,24 @@ const Index = () => {
           order_id: orderData.id,
         });
 
+        if (outboundError) throw outboundError;
+
         // Update inventory
-        const { data: inventoryData } = await supabase
+        const { data: inventoryData, error: inventoryFetchError } = await supabase
           .from("inventory")
           .select("current_stock")
           .eq("product_id", item.id)
           .single();
 
+        if (inventoryFetchError) throw inventoryFetchError;
+
         if (inventoryData) {
-          await supabase
+          const { error: inventoryUpdateError } = await supabase
             .from("inventory")
             .update({ current_stock: inventoryData.current_stock - item.quantity })
             .eq("product_id", item.id);
+
+          if (inventoryUpdateError) throw inventoryUpdateError;
         }
       }
 
