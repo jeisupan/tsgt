@@ -632,16 +632,14 @@ const Index = () => {
                       selectedCategory={selectedCategory}
                       onSelectCategory={setSelectedCategory}
                     />
-                    {hasAccess(["sales", "admin"]) && (
-                      <Button
-                        variant="secondary"
-                        onClick={() => setIsProductsModalOpen(true)}
-                        className="gap-2 shrink-0"
-                      >
-                        <ShoppingBag className="h-4 w-4" />
-                        Manage Items
-                      </Button>
-                    )}
+                    <Button
+                      variant="secondary"
+                      onClick={() => setIsProductsModalOpen(true)}
+                      className="gap-2 shrink-0"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Manage Items
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -658,17 +656,15 @@ const Index = () => {
                 </>
               ) : (
                 <div className="flex items-center justify-center min-h-[400px]">
-                  {hasAccess(["sales", "admin"]) && (
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      onClick={() => setIsProductsModalOpen(true)}
-                      className="gap-2 animate-pulse"
-                    >
-                      <ShoppingBag className="h-5 w-5" />
-                      Add Items
-                    </Button>
-                  )}
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => setIsProductsModalOpen(true)}
+                    className="gap-2 animate-pulse"
+                  >
+                    <ShoppingBag className="h-5 w-5" />
+                    Add Items
+                  </Button>
                 </div>
               )}
             </div>
