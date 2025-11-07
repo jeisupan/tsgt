@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3, TrendingUp, Package, Lightbulb } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { InsightsVisualization } from "./InsightsVisualization";
 
 // Simple markdown-to-HTML converter for basic formatting
 const renderMarkdown = (text: string) => {
@@ -62,6 +63,7 @@ const InventoryInsights = () => {
   const [generatedAt, setGeneratedAt] = useState<string>("");
   const [accounts, setAccounts] = useState<Array<{ id: string; account_name: string }>>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all");
+  const [visualizationData, setVisualizationData] = useState<{ inventory: any[], orders: any[] }>({ inventory: [], orders: [] });
   const { toast } = useToast();
   const { accountId, role } = useUserRole();
 
@@ -129,6 +131,14 @@ const InventoryInsights = () => {
 
       setInsights(data.insights);
       setGeneratedAt(data.generatedAt);
+      
+      // Store visualization data
+      if (data.inventoryData && data.ordersData) {
+        setVisualizationData({
+          inventory: data.inventoryData,
+          orders: data.ordersData
+        });
+      }
 
       toast({
         title: "Insights Generated",
@@ -244,23 +254,35 @@ const InventoryInsights = () => {
       </Card>
 
       {insights && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Icon className="h-5 w-5" />
-              {selectedReport?.label}
-            </CardTitle>
-            <CardDescription>
-              Generated on {new Date(generatedAt).toLocaleString()}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div 
-              className="prose prose-sm max-w-none dark:prose-invert text-foreground"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(insights) }}
+        <>
+          {/* Visualizations */}
+          {visualizationData.inventory.length > 0 && (
+            <InsightsVisualization
+              inventoryData={visualizationData.inventory}
+              ordersData={visualizationData.orders}
+              reportType={reportType}
             />
-          </CardContent>
-        </Card>
+          )}
+
+          {/* AI Text Insights */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Icon className="h-5 w-5" />
+                {selectedReport?.label}
+              </CardTitle>
+              <CardDescription>
+                Generated on {new Date(generatedAt).toLocaleString()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div 
+                className="prose prose-sm max-w-none dark:prose-invert text-foreground"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(insights) }}
+              />
+            </CardContent>
+          </Card>
+        </>
       )}
 
       {!insights && !loading && (

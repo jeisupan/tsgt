@@ -217,7 +217,9 @@ Format your response in clear, actionable sections.`;
     return new Response(JSON.stringify({ 
       insights,
       reportType,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
+      inventoryData: enrichedInventory,
+      ordersData: enrichedOrders
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
