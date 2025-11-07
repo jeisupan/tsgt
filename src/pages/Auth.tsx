@@ -30,6 +30,9 @@ const Auth = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>(kanjiLogo);
+  const [isBusinessSignup, setIsBusinessSignup] = useState(true);
+  const [accountName, setAccountName] = useState("");
+  const [accountId, setAccountId] = useState("");
 
   useEffect(() => {
     fetchLogo();
@@ -143,6 +146,20 @@ const Auth = () => {
         return;
       }
 
+      // Validate business-specific fields
+      if (isBusinessSignup && !accountName.trim()) {
+        toast.error("Account name is required for business signup");
+        setLoading(false);
+        return;
+      }
+
+      // Validate user-specific fields
+      if (!isBusinessSignup && !accountId.trim()) {
+        toast.error("Account ID is required. Please contact your administrator.");
+        setLoading(false);
+        return;
+      }
+
       // Validate password strength
       const passwordValidation = passwordSchema.safeParse(password);
       if (!passwordValidation.success) {
@@ -161,7 +178,10 @@ const Auth = () => {
           data: {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
-            full_name: `${firstName.trim()} ${lastName.trim()}`.trim()
+            full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+            is_business_signup: isBusinessSignup,
+            account_name: isBusinessSignup ? accountName.trim() : undefined,
+            account_id: !isBusinessSignup ? accountId.trim() : undefined
           }
         }
       });
@@ -308,6 +328,32 @@ const Auth = () => {
               <form onSubmit={isForgotPassword ? handleForgotPassword : isSignUp ? handleSignUp : handleLogin} className="space-y-4">
             {isSignUp && (
               <>
+                <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/50">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={isBusinessSignup ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setIsBusinessSignup(true)}
+                    >
+                      Sign up as Business
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={!isBusinessSignup ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setIsBusinessSignup(false)}
+                    >
+                      Sign up as User
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    {isBusinessSignup 
+                      ? "Create a new business account and become its administrator" 
+                      : "Join an existing business using your Account ID"}
+                  </p>
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
@@ -330,6 +376,38 @@ const Auth = () => {
                     required
                   />
                 </div>
+                
+                {isBusinessSignup ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="accountName">Business Name</Label>
+                    <Input
+                      id="accountName"
+                      type="text"
+                      placeholder="Enter your business name"
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This will be your unique account identifier
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="accountId">Account ID</Label>
+                    <Input
+                      id="accountId"
+                      type="text"
+                      placeholder="Enter your company's Account ID"
+                      value={accountId}
+                      onChange={(e) => setAccountId(e.target.value)}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Contact your administrator for the Account ID
+                    </p>
+                  </div>
+                )}
               </>
             )}
             <div className="space-y-2">

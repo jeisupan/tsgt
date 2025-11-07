@@ -6,6 +6,7 @@ export type UserRole = "super_admin" | "admin" | "sales" | "inventory" | "financ
 export const useUserRole = () => {
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
+  const [accountId, setAccountId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -13,9 +14,19 @@ export const useUserRole = () => {
       
       if (!user) {
         setRole(null);
+        setAccountId(null);
         setLoading(false);
         return;
       }
+
+      // Fetch user profile to get account_id
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("account_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      setAccountId(profile?.account_id || null);
 
       const { data, error } = await supabase
         .from("user_roles")
@@ -54,5 +65,5 @@ export const useUserRole = () => {
     return true;
   };
 
-  return { role, loading, hasAccess, canEdit };
+  return { role, loading, hasAccess, canEdit, accountId };
 };
