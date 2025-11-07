@@ -429,8 +429,8 @@ const Index = () => {
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-white shadow-sm">
-                <img src={kanjiLogo} alt="Kanji AI Apps" className="h-12 w-12" />
+              <div className="p-3 rounded-lg bg-white shadow-sm">
+                <img src={kanjiLogo} alt="Kanji AI Apps" className="h-20 w-20 object-contain" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
