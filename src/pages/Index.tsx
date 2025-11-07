@@ -429,7 +429,15 @@ const Index = () => {
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={kanjiLogo} alt="Kanji AI Apps" className="h-16 w-auto" />
+              <div className="p-2 rounded-lg bg-white shadow-sm">
+                <img src={kanjiLogo} alt="Kanji AI Apps" className="h-12 w-12" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Business Management System
+                </h1>
+                <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground hidden md:inline">{user?.email}</span>
