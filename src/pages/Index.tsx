@@ -11,6 +11,7 @@ import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
 import { ProductManagement } from "@/components/ProductManagement";
 import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag } from "lucide-react";
+import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -429,9 +430,7 @@ const Index = () => {
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-1 rounded-lg bg-white shadow-sm">
-                <img src={kanjiLogo} alt="Kanji AI Apps" className="h-28 w-28 object-contain" />
-              </div>
+              <LogoUpload />
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Business Management System
