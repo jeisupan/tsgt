@@ -196,24 +196,24 @@ export const LogoUpload = () => {
           />
           
           {canEdit && isHovered && !isUploading && (
-            <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center gap-4">
+            <div className="absolute inset-0 rounded-lg flex items-center justify-center gap-4">
               <div
-                className="cursor-pointer hover:scale-110 transition-transform"
+                className="cursor-pointer hover:scale-110 transition-transform bg-primary/90 p-2 rounded-full shadow-lg"
                 onClick={handleClick}
                 title="Change logo"
               >
-                <Pencil className="h-5 w-5 text-white" />
+                <Pencil className="h-5 w-5 text-primary-foreground" />
               </div>
               {hasCustomLogo && (
                 <div
-                  className="cursor-pointer hover:scale-110 transition-transform"
+                  className="cursor-pointer hover:scale-110 transition-transform bg-destructive/90 p-2 rounded-full shadow-lg"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowDeleteDialog(true);
                   }}
                   title="Delete logo and revert to default"
                 >
-                  <Trash2 className="h-5 w-5 text-white hover:text-destructive" />
+                  <Trash2 className="h-5 w-5 text-destructive-foreground" />
                 </div>
               )}
             </div>
