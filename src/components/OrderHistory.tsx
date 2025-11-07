@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { History, Receipt, Pencil, Trash2, CalendarIcon, X } from "lucide-react";
+import { History, Receipt, Pencil, Trash2, CalendarIcon, X, Download } from "lucide-react";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import { z } from "zod";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import * as XLSX from "xlsx";
 
 const orderItemSchema = z.object({
   quantity: z.number().int().positive("Quantity must be positive").max(10000, "Quantity too large"),
@@ -75,6 +76,30 @@ export const OrderHistory = () => {
   const clearFilters = () => {
     setSingleDate(undefined);
     setDateRange(undefined);
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = filteredOrders.flatMap(order => 
+      order.order_items.map(item => ({
+        "Order Number": order.order_number,
+        "Date": format(new Date(order.created_at), "PPP"),
+        "Product": item.product_name,
+        "Quantity": item.quantity,
+        "Price": `₱${item.price.toFixed(2)}`,
+        "Line Total": `₱${item.line_total.toFixed(2)}`,
+        "Order Subtotal": `₱${order.subtotal.toFixed(2)}`,
+        "Tax": `₱${order.tax.toFixed(2)}`,
+        "Order Total": `₱${order.total.toFixed(2)}`
+      }))
+    );
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+    
+    const filename = `order_history_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+    toast.success("Order history exported successfully");
   };
 
   const fetchOrders = async () => {
@@ -476,6 +501,17 @@ export const OrderHistory = () => {
               </PopoverContent>
             </Popover>
           )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToExcel}
+            className="gap-2"
+            disabled={filteredOrders.length === 0}
+          >
+            <Download className="h-4 w-4" />
+            Export to Excel
+          </Button>
 
           {(singleDate || dateRange) && (
             <Button
