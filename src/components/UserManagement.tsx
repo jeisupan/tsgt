@@ -62,8 +62,10 @@ export const UserManagement = () => {
   const isSuperAdmin = role === "super_admin";
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (role) {
+      fetchUsers();
+    }
+  }, [role]);
 
   const fetchUsers = async () => {
     setLoading(true);
