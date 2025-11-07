@@ -49,6 +49,7 @@ export const CustomerManagement = () => {
 
   const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
   const canEditCustomer = role === "admin" || role === "super_admin";
+  const showActionsColumn = role !== "sales";
 
   const fetchCustomers = async () => {
     setIsLoading(true);
@@ -161,7 +162,7 @@ export const CustomerManagement = () => {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Address</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {showActionsColumn && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -176,30 +177,32 @@ export const CustomerManagement = () => {
                   {!canViewSensitiveData && <TableCell>{maskEmail(customer.email)}</TableCell>}
                   {!canViewSensitiveData && <TableCell>{maskPhone(customer.phone)}</TableCell>}
                   {!canViewSensitiveData && <TableCell>{maskAddress(customer.address)}</TableCell>}
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {canEditCustomer && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(customer)}
-                          title="Edit customer"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {canViewSensitiveData && customer.previous_version && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleViewHistory(customer)}
-                          title="View history"
-                        >
-                          <History className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+                  {showActionsColumn && (
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {canEditCustomer && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(customer)}
+                            title="Edit customer"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canViewSensitiveData && customer.previous_version && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewHistory(customer)}
+                            title="View history"
+                          >
+                            <History className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
