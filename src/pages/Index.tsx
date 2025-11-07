@@ -13,6 +13,7 @@ import { ProductManagement } from "@/components/ProductManagement";
 import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag } from "lucide-react";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -105,6 +106,7 @@ const Index = () => {
   const [activeMenu, setActiveMenu] = useState<string>("pos");
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
   
   // Auto logout on inactivity (15 min) and tab/browser close
   useAutoLogout();
@@ -517,17 +519,6 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["sales", "admin", "super_admin"]) && (
-                <Button
-                  variant={activeMenu === "products" ? "default" : "outline"}
-                  onClick={() => setActiveMenu("products")}
-                  className="gap-2"
-                >
-                  <ShoppingBag className="h-5 w-5" />
-                  POS Items
-                </Button>
-              )}
-              
               {hasAccess(["super_admin"]) && (
                 <Button
                   variant={activeMenu === "users" ? "default" : "outline"}
@@ -546,8 +537,6 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         {activeMenu === "users" ? (
           <UserManagement />
-        ) : activeMenu === "products" ? (
-          <ProductManagement />
         ) : activeMenu === "inventory" ? (
           <InventoryManagement />
         ) : activeMenu === "history" ? (
@@ -561,11 +550,23 @@ const Index = () => {
         ) : activeMenu === "pos" && hasAccess(["sales", "admin", "super_admin"]) ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-              />
+              <div className="flex items-center justify-between">
+                <CategoryFilter
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onSelectCategory={setSelectedCategory}
+                />
+                {hasAccess(["sales", "admin", "super_admin"]) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsProductsModalOpen(true)}
+                    className="gap-2"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    View Items
+                  </Button>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
@@ -597,6 +598,15 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={isProductsModalOpen} onOpenChange={setIsProductsModalOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage POS Items</DialogTitle>
+          </DialogHeader>
+          <ProductManagement />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
