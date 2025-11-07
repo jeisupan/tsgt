@@ -129,6 +129,7 @@ export const LogoUpload = () => {
       toast.error("Failed to upload logo");
     } finally {
       setIsUploading(false);
+      setIsHovered(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
