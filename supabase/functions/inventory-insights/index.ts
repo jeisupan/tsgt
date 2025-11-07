@@ -30,14 +30,7 @@ serve(async (req) => {
     // Fetch inventory data
     const { data: inventoryData, error: inventoryError } = await supabase
       .from('inventory')
-      .select(`
-        *,
-        products (
-          name,
-          price,
-          category
-        )
-      `)
+      .select('*')
       .eq('account_id', accountId);
 
     if (inventoryError) {
@@ -45,17 +38,32 @@ serve(async (req) => {
       throw inventoryError;
     }
 
+    // Fetch products data
+    const { data: productsData, error: productsError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('account_id', accountId);
+
+    if (productsError) {
+      console.error('Error fetching products:', productsError);
+      throw productsError;
+    }
+
+    // Enrich inventory with product details
+    const enrichedInventory = inventoryData?.map(inv => {
+      const product = productsData?.find(p => p.id === inv.product_id);
+      return {
+        ...inv,
+        product_name: inv.product_name || product?.name || 'Unknown',
+        product_price: product?.price || 0,
+        product_category: inv.product_category || product?.category || 'Unknown'
+      };
+    }) || [];
+
     // Fetch recent orders for sales insights
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
-      .select(`
-        *,
-        order_items (
-          quantity,
-          price,
-          product_id
-        )
-      `)
+      .select('*, order_items(*)')
       .eq('account_id', accountId)
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       .order('created_at', { ascending: false });
@@ -77,7 +85,7 @@ serve(async (req) => {
 - Recommendations for optimal stock levels
 
 Format your response in clear sections with bullet points and actionable recommendations.`;
-        dataContext = `Current Inventory:\n${JSON.stringify(inventoryData, null, 2)}`;
+        dataContext = `Current Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}`;
         break;
 
       case 'sales-trends':
@@ -89,7 +97,7 @@ Format your response in clear sections with bullet points and actionable recomme
 - Recommendations for inventory adjustments based on sales
 
 Format your response in clear sections with bullet points and actionable insights.`;
-        dataContext = `Inventory:\n${JSON.stringify(inventoryData, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
         break;
 
       case 'reorder-suggestions':
@@ -100,7 +108,7 @@ Format your response in clear sections with bullet points and actionable insight
 - Estimated costs and timing considerations
 
 Format your response as a prioritized list with specific actionable recommendations.`;
-        dataContext = `Inventory:\n${JSON.stringify(inventoryData, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
         break;
 
       case 'general-insights':
@@ -113,7 +121,7 @@ Format your response as a prioritized list with specific actionable recommendati
 - Strategic recommendations
 
 Format your response in clear, actionable sections.`;
-        dataContext = `Inventory:\n${JSON.stringify(inventoryData, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
     }
 
     // Call Lovable AI
