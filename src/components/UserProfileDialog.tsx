@@ -13,7 +13,8 @@ interface UserProfileDialogProps {
   onOpenChange: (open: boolean) => void;
   userId: string;
   userEmail: string;
-  currentFullName: string | null;
+  currentFirstName: string | null;
+  currentLastName: string | null;
   currentRoles: string[];
   onSuccess: () => void;
 }
@@ -31,20 +32,23 @@ export const UserProfileDialog = ({
   onOpenChange,
   userId,
   userEmail,
-  currentFullName,
+  currentFirstName,
+  currentLastName,
   currentRoles,
   onSuccess,
 }: UserProfileDialogProps) => {
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setFullName(currentFullName || "");
+      setFirstName(currentFirstName || "");
+      setLastName(currentLastName || "");
       setSelectedRoles(currentRoles);
     }
-  }, [open, currentFullName, currentRoles]);
+  }, [open, currentFirstName, currentLastName, currentRoles]);
 
   const handleToggleRole = (role: string) => {
     setSelectedRoles((prev) =>
@@ -57,10 +61,17 @@ export const UserProfileDialog = ({
   const handleSave = async () => {
     setLoading(true);
     try {
+      // Compute full_name from first_name and last_name
+      const full_name = `${firstName.trim()} ${lastName.trim()}`.trim();
+      
       // Update user profile name
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ full_name: fullName.trim() || null })
+        .update({ 
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
+          full_name: full_name || null
+        })
         .eq("id", userId);
 
       if (profileError) throw profileError;
@@ -107,14 +118,25 @@ export const UserProfileDialog = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter full name"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Enter first name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Enter last name"
+              />
+            </div>
           </div>
 
           <Separator />

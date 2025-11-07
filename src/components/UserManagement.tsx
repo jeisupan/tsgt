@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Settings } from "lucide-react";
+import { Shield, Settings, Search } from "lucide-react";
 import { UserProfileDialog } from "./UserProfileDialog";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -13,6 +15,8 @@ interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   account_id: string | null;
 }
 
@@ -48,6 +52,9 @@ export const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [isRolesDialogOpen, setIsRolesDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState<string>("all");
+  const [accounts, setAccounts] = useState<Account[]>([]);
 
   const isSuperAdmin = role === "super_admin";
 
@@ -75,14 +82,17 @@ export const UserManagement = () => {
     // Fetch accounts if super_admin
     let accountsMap: Record<string, string> = {};
     if (isSuperAdmin) {
-      const { data: accounts, error: accountsError } = await supabase
+      const { data: accountsData, error: accountsError } = await supabase
         .from("accounts")
         .select("id, account_name");
 
       if (accountsError) {
         console.error("Error fetching accounts:", accountsError);
-      } else if (accounts) {
-        accountsMap = accounts.reduce((acc, account) => {
+      } else if (accountsData) {
+        // Set accounts for filter dropdown
+        setAccounts(accountsData);
+        
+        accountsMap = accountsData.reduce((acc, account) => {
           acc[account.id] = account.account_name;
           return acc;
         }, {} as Record<string, string>);
@@ -124,6 +134,21 @@ export const UserManagement = () => {
     setIsRolesDialogOpen(true);
   };
 
+  // Filter users based on search query and selected account
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = 
+      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesAccount = 
+      selectedAccount === "all" || 
+      selectedAccount === "no-account" && !user.account_id ||
+      user.account_id === selectedAccount;
+    
+    return matchesSearch && matchesAccount;
+  });
+
 
   if (loading) {
     return (
@@ -144,6 +169,36 @@ export const UserManagement = () => {
           <CardDescription>Manage user access and roles for registered users</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            
+            {isSuperAdmin && accounts.length > 0 && (
+              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <SelectTrigger className="w-full sm:w-[250px]">
+                  <SelectValue placeholder="Filter by account" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Accounts</SelectItem>
+                  <SelectItem value="no-account">No Account</SelectItem>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.account_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          
           <Table>
             <TableHeader>
               <TableRow>
@@ -154,7 +209,14 @@ export const UserManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={isSuperAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">
+                    No users found matching your filters
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -193,7 +255,8 @@ export const UserManagement = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -205,7 +268,8 @@ export const UserManagement = () => {
           onOpenChange={setIsRolesDialogOpen}
           userId={selectedUser.id}
           userEmail={selectedUser.email}
-          currentFullName={selectedUser.full_name}
+          currentFirstName={selectedUser.first_name || null}
+          currentLastName={selectedUser.last_name || null}
           currentRoles={selectedUser.roles}
           onSuccess={fetchUsers}
         />
