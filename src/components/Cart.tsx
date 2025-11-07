@@ -25,12 +25,13 @@ interface CartProps {
   items: CartItem[];
   onUpdateQuantity: (id: string, quantity: number) => void;
   onRemoveItem: (id: string) => void;
-  onCheckout: (customerId: string) => void;
+  onCheckout: (customerId: string, invoiceNumber?: string) => void;
 }
 
 export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [invoiceNumber, setInvoiceNumber] = useState<string>("");
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -60,8 +61,9 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
       toast.error("Please select a customer before checkout");
       return;
     }
-    onCheckout(selectedCustomerId);
+    onCheckout(selectedCustomerId, invoiceNumber || undefined);
     setSelectedCustomerId("");
+    setInvoiceNumber("");
   };
 
   const handleCustomerAdded = () => {
@@ -161,6 +163,18 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
                 <UserPlus className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Invoice / OR Number (Optional)
+            </label>
+            <input
+              type="text"
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              placeholder="Enter invoice or OR number"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
           </div>
           <Separator />
           <div className="flex justify-between text-muted-foreground">

@@ -343,7 +343,7 @@ const Index = () => {
     );
   }
 
-  const handleCheckout = async (customerId: string) => {
+  const handleCheckout = async (customerId: string, invoiceNumber?: string) => {
     const subtotal = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
