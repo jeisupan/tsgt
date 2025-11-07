@@ -202,7 +202,7 @@ export const LogoUpload = () => {
                 onClick={handleClick}
                 title="Change logo"
               >
-                <Pencil className="h-8 w-8 text-white" />
+                <Pencil className="h-5 w-5 text-white" />
               </div>
               {hasCustomLogo && (
                 <div
@@ -213,7 +213,7 @@ export const LogoUpload = () => {
                   }}
                   title="Delete logo and revert to default"
                 >
-                  <Trash2 className="h-8 w-8 text-white hover:text-destructive" />
+                  <Trash2 className="h-5 w-5 text-white hover:text-destructive" />
                 </div>
               )}
             </div>
