@@ -211,7 +211,7 @@ export const LogoUpload = () => {
           <img 
             src={logoUrl} 
             alt="Kanji AI Apps" 
-            className="h-28 w-28 object-contain" 
+            className="h-28 w-28 object-contain rounded-lg" 
           />
           
           {canEdit && isHovered && !isUploading && (
