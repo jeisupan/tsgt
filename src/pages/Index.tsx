@@ -692,7 +692,18 @@ const Index = () => {
         )}
       </div>
 
-      <Dialog open={isProductsModalOpen} onOpenChange={setIsProductsModalOpen}>
+      <Dialog 
+        open={isProductsModalOpen} 
+        onOpenChange={(open) => {
+          setIsProductsModalOpen(open);
+          // Force refresh when dialog closes
+          if (!open) {
+            fetchProducts();
+            fetchInventory();
+            fetchCategories();
+          }
+        }}
+      >
         <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage POS Items</DialogTitle>

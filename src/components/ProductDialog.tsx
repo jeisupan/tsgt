@@ -183,14 +183,15 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
         toast.success("Product added successfully");
       }
 
-      // Force immediate refresh
+      // Force immediate multiple refreshes to ensure visibility
       onSuccess();
-      onOpenChange(false);
       
-      // Small delay to ensure DB has propagated
-      setTimeout(() => {
-        onSuccess();
-      }, 100);
+      // Stagger refreshes to catch DB propagation
+      setTimeout(() => onSuccess(), 50);
+      setTimeout(() => onSuccess(), 150);
+      setTimeout(() => onSuccess(), 300);
+      
+      onOpenChange(false);
     } catch (error: any) {
       toast.error(error.message || "Failed to save product");
     } finally {
