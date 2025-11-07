@@ -327,82 +327,84 @@ export const InventoryManagement = () => {
         </TabsContent>
 
         <TabsContent value="inbound" className="space-y-4">
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <h3 className="text-xl font-semibold">Add Inbound Stock</h3>
-            </div>
-            <form onSubmit={handleInboundSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="inbound-product">Product</Label>
-                <Select value={inboundProductId} onValueChange={setInboundProductId} disabled={!canAdjustStock}>
-                  <SelectTrigger id="inbound-product">
-                    <SelectValue placeholder="Select a product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {canAdjustStock && (
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                <h3 className="text-xl font-semibold">Add Inbound Stock</h3>
               </div>
+              <form onSubmit={handleInboundSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="inbound-product">Product</Label>
+                  <Select value={inboundProductId} onValueChange={setInboundProductId} disabled={!canAdjustStock}>
+                    <SelectTrigger id="inbound-product">
+                      <SelectValue placeholder="Select a product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label htmlFor="inbound-quantity">Quantity</Label>
-                <Input
-                  id="inbound-quantity"
-                  type="number"
-                  min="1"
-                  value={inboundQuantity}
-                  onChange={(e) => setInboundQuantity(e.target.value)}
-                  placeholder="Enter quantity"
-                  disabled={!canAdjustStock}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="inbound-quantity">Quantity</Label>
+                  <Input
+                    id="inbound-quantity"
+                    type="number"
+                    min="1"
+                    value={inboundQuantity}
+                    onChange={(e) => setInboundQuantity(e.target.value)}
+                    placeholder="Enter quantity"
+                    disabled={!canAdjustStock}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="inbound-type">Transaction Type</Label>
-                <Select value={inboundType} onValueChange={setInboundType} disabled={!canAdjustStock}>
-                  <SelectTrigger id="inbound-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="purchase">Purchase</SelectItem>
-                    <SelectItem value="return">Return</SelectItem>
-                    <SelectItem value="adjustment">Adjustment</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div>
+                  <Label htmlFor="inbound-type">Transaction Type</Label>
+                  <Select value={inboundType} onValueChange={setInboundType} disabled={!canAdjustStock}>
+                    <SelectTrigger id="inbound-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="purchase">Purchase</SelectItem>
+                      <SelectItem value="return">Return</SelectItem>
+                      <SelectItem value="adjustment">Adjustment</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label htmlFor="inbound-supplier">Supplier (Optional)</Label>
-                <Input
-                  id="inbound-supplier"
-                  value={inboundSupplier}
-                  onChange={(e) => setInboundSupplier(e.target.value)}
-                  placeholder="Enter supplier name"
-                  disabled={!canAdjustStock}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="inbound-supplier">Supplier (Optional)</Label>
+                  <Input
+                    id="inbound-supplier"
+                    value={inboundSupplier}
+                    onChange={(e) => setInboundSupplier(e.target.value)}
+                    placeholder="Enter supplier name"
+                    disabled={!canAdjustStock}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="inbound-notes">Notes (Optional)</Label>
-                <Textarea
-                  id="inbound-notes"
-                  value={inboundNotes}
-                  onChange={(e) => setInboundNotes(e.target.value)}
-                  placeholder="Add any notes"
-                  disabled={!canAdjustStock}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="inbound-notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="inbound-notes"
+                    value={inboundNotes}
+                    onChange={(e) => setInboundNotes(e.target.value)}
+                    placeholder="Add any notes"
+                    disabled={!canAdjustStock}
+                  />
+                </div>
 
-              <Button type="submit" className="w-full" disabled={!canAdjustStock}>
-                Add Stock
-              </Button>
-            </form>
-          </Card>
+                <Button type="submit" className="w-full" disabled={!canAdjustStock}>
+                  Add Stock
+                </Button>
+              </form>
+            </Card>
+          )}
 
           <Card className="p-6">
             <h3 className="text-xl font-semibold mb-4">Inbound History</h3>
@@ -441,82 +443,84 @@ export const InventoryManagement = () => {
         </TabsContent>
 
         <TabsContent value="outbound" className="space-y-4">
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingDown className="h-5 w-5 text-primary" />
-              <h3 className="text-xl font-semibold">Process Outbound Stock</h3>
-            </div>
-            <form onSubmit={handleOutboundSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="outbound-product">Product</Label>
-                <Select value={outboundProductId} onValueChange={setOutboundProductId} disabled={!canAdjustStock}>
-                  <SelectTrigger id="outbound-product">
-                    <SelectValue placeholder="Select a product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {canAdjustStock && (
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingDown className="h-5 w-5 text-primary" />
+                <h3 className="text-xl font-semibold">Process Outbound Stock</h3>
               </div>
+              <form onSubmit={handleOutboundSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="outbound-product">Product</Label>
+                  <Select value={outboundProductId} onValueChange={setOutboundProductId} disabled={!canAdjustStock}>
+                    <SelectTrigger id="outbound-product">
+                      <SelectValue placeholder="Select a product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label htmlFor="outbound-quantity">Quantity</Label>
-                <Input
-                  id="outbound-quantity"
-                  type="number"
-                  min="1"
-                  value={outboundQuantity}
-                  onChange={(e) => setOutboundQuantity(e.target.value)}
-                  placeholder="Enter quantity"
-                  disabled={!canAdjustStock}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="outbound-quantity">Quantity</Label>
+                  <Input
+                    id="outbound-quantity"
+                    type="number"
+                    min="1"
+                    value={outboundQuantity}
+                    onChange={(e) => setOutboundQuantity(e.target.value)}
+                    placeholder="Enter quantity"
+                    disabled={!canAdjustStock}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="outbound-type">Transaction Type</Label>
-                <Select value={outboundType} onValueChange={setOutboundType} disabled={!canAdjustStock}>
-                  <SelectTrigger id="outbound-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="transfer">Transfer</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
-                    <SelectItem value="damage">Damage/Loss</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div>
+                  <Label htmlFor="outbound-type">Transaction Type</Label>
+                  <Select value={outboundType} onValueChange={setOutboundType} disabled={!canAdjustStock}>
+                    <SelectTrigger id="outbound-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="transfer">Transfer</SelectItem>
+                      <SelectItem value="delivery">Delivery</SelectItem>
+                      <SelectItem value="damage">Damage/Loss</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label htmlFor="outbound-destination">Destination (Optional)</Label>
-                <Input
-                  id="outbound-destination"
-                  value={outboundDestination}
-                  onChange={(e) => setOutboundDestination(e.target.value)}
-                  placeholder="Branch/warehouse name"
-                  disabled={!canAdjustStock}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="outbound-destination">Destination (Optional)</Label>
+                  <Input
+                    id="outbound-destination"
+                    value={outboundDestination}
+                    onChange={(e) => setOutboundDestination(e.target.value)}
+                    placeholder="Branch/warehouse name"
+                    disabled={!canAdjustStock}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="outbound-notes">Notes (Optional)</Label>
-                <Textarea
-                  id="outbound-notes"
-                  value={outboundNotes}
-                  onChange={(e) => setOutboundNotes(e.target.value)}
-                  placeholder="Add any notes"
-                  disabled={!canAdjustStock}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="outbound-notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="outbound-notes"
+                    value={outboundNotes}
+                    onChange={(e) => setOutboundNotes(e.target.value)}
+                    placeholder="Add any notes"
+                    disabled={!canAdjustStock}
+                  />
+                </div>
 
-              <Button type="submit" className="w-full" disabled={!canAdjustStock}>
-                Process Outbound
-              </Button>
-            </form>
-          </Card>
+                <Button type="submit" className="w-full" disabled={!canAdjustStock}>
+                  Process Outbound
+                </Button>
+              </form>
+            </Card>
+          )}
 
           <Card className="p-6">
             <h3 className="text-xl font-semibold mb-4">Outbound History</h3>
