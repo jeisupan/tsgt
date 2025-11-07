@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -60,6 +60,8 @@ const InventoryInsights = () => {
   const [insights, setInsights] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string>("");
+  const [accounts, setAccounts] = useState<Array<{ id: string; account_name: string }>>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("all");
   const { toast } = useToast();
   const { accountId, role } = useUserRole();
 
@@ -69,6 +71,26 @@ const InventoryInsights = () => {
     { value: "sales-trends", label: "Sales Trends", icon: TrendingUp },
     { value: "reorder-suggestions", label: "Reorder Suggestions", icon: BarChart3 },
   ];
+
+  // Fetch accounts for super_admin
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (role === "super_admin") {
+        const { data, error } = await supabase
+          .from("accounts")
+          .select("id, account_name")
+          .order("account_name");
+        
+        if (error) {
+          console.error("Error fetching accounts:", error);
+        } else {
+          setAccounts(data || []);
+        }
+      }
+    };
+    
+    fetchAccounts();
+  }, [role]);
 
   const generateInsights = async () => {
     if (!accountId && role !== "super_admin") {
@@ -84,10 +106,14 @@ const InventoryInsights = () => {
     setInsights("");
 
     try {
+      const targetAccountId = role === "super_admin" && selectedAccountId === "all" 
+        ? null 
+        : (role === "super_admin" ? selectedAccountId : accountId);
+
       const { data, error } = await supabase.functions.invoke("inventory-insights", {
         body: { 
           reportType, 
-          accountId,
+          accountId: targetAccountId,
           isSuperAdmin: role === "super_admin"
         },
       });
@@ -137,7 +163,14 @@ const InventoryInsights = () => {
         <h2 className="text-3xl font-bold tracking-tight">AI Inventory Insights</h2>
         <p className="text-muted-foreground mt-2">
           Generate automated reports and insights powered by AI
-          {role === "super_admin" && <span className="ml-2 text-primary font-semibold">(Analyzing all accounts)</span>}
+          {role === "super_admin" && (
+            <span className="ml-2 text-primary font-semibold">
+              {selectedAccountId === "all" 
+                ? "(Analyzing all accounts)" 
+                : `(${accounts.find(a => a.id === selectedAccountId)?.account_name || "Selected account"})`
+              }
+            </span>
+          )}
         </p>
       </div>
 
@@ -149,40 +182,63 @@ const InventoryInsights = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {reportTypes.map((type) => {
-                    const TypeIcon = type.icon;
-                    return (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center gap-2">
-                          <TypeIcon className="h-4 w-4" />
-                          {type.label}
-                        </div>
+          <div className="flex flex-col gap-4">
+            {role === "super_admin" && accounts.length > 0 && (
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Filter by Account</label>
+                <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Accounts</SelectItem>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.account_name}
                       </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Report Type</label>
+                <Select value={reportType} onValueChange={setReportType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reportTypes.map((type) => {
+                      const TypeIcon = type.icon;
+                      return (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div className="flex items-center gap-2">
+                            <TypeIcon className="h-4 w-4" />
+                            {type.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button onClick={generateInsights} disabled={loading} className="w-full sm:w-auto">
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Icon className="mr-2 h-4 w-4" />
+                      Generate Insights
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-            <Button onClick={generateInsights} disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Icon className="mr-2 h-4 w-4" />
-                  Generate Insights
-                </>
-              )}
-            </Button>
           </div>
         </CardContent>
       </Card>

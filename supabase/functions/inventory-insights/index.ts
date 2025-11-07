@@ -36,12 +36,37 @@ serve(async (req) => {
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       .order('created_at', { ascending: false });
 
-    // Only filter by account_id if not super_admin
+    // Only filter by account_id if not super_admin or if specific account selected
     if (!isSuperAdmin && accountId) {
       inventoryQuery = inventoryQuery.eq('account_id', accountId);
       productsQuery = productsQuery.eq('account_id', accountId);
       ordersQuery = ordersQuery.eq('account_id', accountId);
+    } else if (isSuperAdmin && accountId) {
+      // Super admin filtering by specific account
+      inventoryQuery = inventoryQuery.eq('account_id', accountId);
+      productsQuery = productsQuery.eq('account_id', accountId);
+      ordersQuery = ordersQuery.eq('account_id', accountId);
     }
+
+    // Fetch accounts data to get account names
+    let accountsQuery = supabase.from('accounts').select('id, account_name');
+    if (!isSuperAdmin && accountId) {
+      accountsQuery = accountsQuery.eq('id', accountId);
+    } else if (isSuperAdmin && accountId) {
+      accountsQuery = accountsQuery.eq('id', accountId);
+    }
+
+    const { data: accountsData, error: accountsError } = await accountsQuery;
+    
+    if (accountsError) {
+      console.error('Error fetching accounts:', accountsError);
+    }
+
+    // Create account name mapping
+    const accountMap = new Map();
+    accountsData?.forEach(acc => {
+      accountMap.set(acc.id, acc.account_name);
+    });
 
     // Fetch inventory data
     const { data: inventoryData, error: inventoryError } = await inventoryQuery;
@@ -59,14 +84,15 @@ serve(async (req) => {
       throw productsError;
     }
 
-    // Enrich inventory with product details
+    // Enrich inventory with product details and account names
     const enrichedInventory = inventoryData?.map(inv => {
       const product = productsData?.find(p => p.id === inv.product_id);
       return {
         ...inv,
         product_name: inv.product_name || product?.name || 'Unknown',
         product_price: product?.price || 0,
-        product_category: inv.product_category || product?.category || 'Unknown'
+        product_category: inv.product_category || product?.category || 'Unknown',
+        account_name: accountMap.get(inv.account_id) || 'Unknown Account'
       };
     }) || [];
 
@@ -77,56 +103,71 @@ serve(async (req) => {
       console.error('Error fetching orders:', ordersError);
     }
 
+    // Enrich orders with account names
+    const enrichedOrders = ordersData?.map(order => ({
+      ...order,
+      account_name: accountMap.get(order.account_id) || 'Unknown Account'
+    })) || [];
+
     // Prepare system prompt based on report type
     let systemPrompt = '';
     let dataContext = '';
+    
+    const accountScope = isSuperAdmin && !accountId ? ' across all accounts' : '';
+    const accountLabel = accountId && accountsData?.length === 1 
+      ? ` for ${accountsData[0].account_name}` 
+      : accountScope;
 
     switch (reportType) {
       case 'stock-levels':
-        systemPrompt = `You are an inventory management expert. Analyze the current stock levels${isSuperAdmin ? ' across all accounts' : ''} and provide insights on:
+        systemPrompt = `You are an inventory management expert. Analyze the current stock levels${accountLabel} and provide insights on:
 - Items running low on stock that need reordering
 - Overstocked items
-- Stock distribution across categories${isSuperAdmin ? ' and accounts' : ''}
+- Stock distribution across categories${isSuperAdmin && !accountId ? ' and accounts' : ''}
 - Recommendations for optimal stock levels
 
+When referencing data, use the account_name field to identify which account each item belongs to.
 Format your response in clear sections with bullet points and actionable recommendations.`;
-        dataContext = `Current Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}`;
+        dataContext = `Current Inventory${accountLabel}:\n${JSON.stringify(enrichedInventory, null, 2)}`;
         break;
 
       case 'sales-trends':
-        systemPrompt = `You are a sales analytics expert. Analyze the sales data${isSuperAdmin ? ' across all accounts' : ''} and provide insights on:
-- Best-selling products${isSuperAdmin ? ' across all accounts' : ''}
+        systemPrompt = `You are a sales analytics expert. Analyze the sales data${accountLabel} and provide insights on:
+- Best-selling products${isSuperAdmin && !accountId ? ' across all accounts' : ''}
 - Sales trends over the past 30 days
-- Revenue patterns${isSuperAdmin ? ' by account' : ''}
+- Revenue patterns${isSuperAdmin && !accountId ? ' by account' : ''}
 - Product performance by category
 - Recommendations for inventory adjustments based on sales
 
+When referencing data, use the account_name field to identify which account each order belongs to.
 Format your response in clear sections with bullet points and actionable insights.`;
-        dataContext = `Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory${accountLabel}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${accountLabel}:\n${JSON.stringify(enrichedOrders, null, 2)}`;
         break;
 
       case 'reorder-suggestions':
-        systemPrompt = `You are a supply chain optimization expert. Analyze inventory levels and sales patterns${isSuperAdmin ? ' across all accounts' : ''} to provide:
+        systemPrompt = `You are a supply chain optimization expert. Analyze inventory levels and sales patterns${accountLabel} to provide:
 - Specific products that should be reordered now
 - Suggested reorder quantities based on sales velocity
-- Priority levels for each reorder${isSuperAdmin ? ' organized by account' : ''}
+- Priority levels for each reorder${isSuperAdmin && !accountId ? ' organized by account' : ''}
 - Estimated costs and timing considerations
 
+When referencing data, use the account_name field to identify which account each item belongs to.
 Format your response as a prioritized list with specific actionable recommendations.`;
-        dataContext = `Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory${accountLabel}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${accountLabel}:\n${JSON.stringify(enrichedOrders, null, 2)}`;
         break;
 
       case 'general-insights':
       default:
-        systemPrompt = `You are a business intelligence expert specializing in inventory management. Provide a comprehensive analysis${isSuperAdmin ? ' across all accounts' : ''} covering:
-- Overall inventory health${isSuperAdmin ? ' by account' : ''}
+        systemPrompt = `You are a business intelligence expert specializing in inventory management. Provide a comprehensive analysis${accountLabel} covering:
+- Overall inventory health${isSuperAdmin && !accountId ? ' by account' : ''}
 - Key metrics and KPIs
 - Top opportunities for improvement
 - Risk factors or concerns
-- Strategic recommendations${isSuperAdmin ? ' for each account' : ''}
+- Strategic recommendations${isSuperAdmin && !accountId ? ' for each account' : ''}
 
+When referencing data, use the account_name field to identify which account each item belongs to.
 Format your response in clear, actionable sections.`;
-        dataContext = `Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory${accountLabel}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${accountLabel}:\n${JSON.stringify(enrichedOrders, null, 2)}`;
     }
 
     // Call Lovable AI
