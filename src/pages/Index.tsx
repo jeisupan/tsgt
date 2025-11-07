@@ -107,14 +107,13 @@ const Index = () => {
   const [activeMenu, setActiveMenu] = useState<string>("");
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [categories, setCategories] = useState<string[]>([]);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   
   // Auto logout on inactivity (15 min) and tab/browser close
   useAutoLogout();
-
-  const categories = Array.from(new Set(products.map((p) => p.category)));
 
   useEffect(() => {
     // Check authentication status
@@ -202,6 +201,7 @@ const Index = () => {
     if (user) {
       fetchInventory();
       fetchProducts();
+      fetchCategories();
       
       // Subscribe to real-time inventory updates
       const inventoryChannel = supabase
@@ -235,9 +235,26 @@ const Index = () => {
         )
         .subscribe();
 
+      // Subscribe to real-time category updates
+      const categoriesChannel = supabase
+        .channel('categories-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'categories'
+          },
+          () => {
+            fetchCategories();
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(inventoryChannel);
         supabase.removeChannel(productsChannel);
+        supabase.removeChannel(categoriesChannel);
       };
     }
   }, [user]);
@@ -285,6 +302,22 @@ const Index = () => {
     }));
     
     setProducts(transformedProducts);
+  };
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("name")
+      .order("name");
+    
+    if (error) {
+      console.error("Error fetching categories:", error);
+      return;
+    }
+    
+    if (data) {
+      setCategories(data.map(c => c.name));
+    }
   };
 
   const filteredProducts =

@@ -75,13 +75,19 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
   }, [product, open]);
 
   const fetchCategories = async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("category");
+    const { data, error } = await supabase
+      .from("categories")
+      .select("name")
+      .order("name");
+    
+    if (error) {
+      console.error("Error fetching categories:", error);
+      return;
+    }
     
     if (data) {
-      const uniqueCategories = [...new Set(data.map(p => p.category))].sort();
-      setCategories(uniqueCategories);
+      const categoryNames = data.map(c => c.name);
+      setCategories(categoryNames);
     }
   };
 
@@ -224,12 +230,18 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
+              <SelectContent className="bg-popover border z-50">
+                {categories.length === 0 ? (
+                  <div className="p-2 text-sm text-muted-foreground text-center">
+                    No categories yet. Click the settings icon to add one.
+                  </div>
+                ) : (
+                  categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
