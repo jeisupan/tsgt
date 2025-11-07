@@ -31,26 +31,13 @@ export const AuditLogs = () => {
   const [filterAction, setFilterAction] = useState<string>("all");
   const { role } = useUserRole();
 
-  // Check if user is super admin
-  if (role !== "super_admin") {
-    return (
-      <Card>
-        <CardContent className="py-12">
-          <div className="flex flex-col items-center justify-center text-center gap-4">
-            <Lock className="h-12 w-12 text-muted-foreground" />
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
-              <p className="text-muted-foreground">
-                Only Super Admins can view audit logs.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   useEffect(() => {
+    // Only fetch if user is super admin
+    if (role !== "super_admin") {
+      setLoading(false);
+      return;
+    }
+
     fetchAuditLogs();
 
     // Subscribe to real-time audit log updates
@@ -72,7 +59,7 @@ export const AuditLogs = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [role]);
 
   const fetchAuditLogs = async () => {
     try {
@@ -113,6 +100,25 @@ export const AuditLogs = () => {
       setLoading(false);
     }
   };
+
+  // Check if user is super admin - AFTER all hooks
+  if (role !== "super_admin") {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="flex flex-col items-center justify-center text-center gap-4">
+            <Lock className="h-12 w-12 text-muted-foreground" />
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+              <p className="text-muted-foreground">
+                Only Super Admins can view audit logs.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getActionBadge = (action: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
