@@ -106,15 +106,14 @@ export const UserManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
                 <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Roles</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
@@ -128,6 +127,7 @@ export const UserManagement = () => {
                       <span>{user.full_name || "-"}</span>
                     </div>
                   </TableCell>
+                  <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {user.roles.length > 0 ? (
