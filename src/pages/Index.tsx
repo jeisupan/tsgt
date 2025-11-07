@@ -578,7 +578,7 @@ const Index = () => {
                     className="gap-2 shrink-0"
                   >
                     <ShoppingBag className="h-4 w-4" />
-                    View Items
+                    Manage Items
                   </Button>
                 )}
               </div>
