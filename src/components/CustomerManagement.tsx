@@ -45,6 +45,7 @@ export const CustomerManagement = () => {
   const [showHistory, setShowHistory] = useState(false);
 
   const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
+  const canEditCustomer = role === "admin" || role === "super_admin";
 
   const fetchCustomers = async () => {
     setIsLoading(true);
@@ -172,14 +173,16 @@ export const CustomerManagement = () => {
                   {!canViewSensitiveData && <TableCell>{maskAddress(customer.address)}</TableCell>}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(customer)}
-                        title="Edit customer"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      {canEditCustomer && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(customer)}
+                          title="Edit customer"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
                       {canViewSensitiveData && customer.previous_version && (
                         <Button
                           variant="ghost"
