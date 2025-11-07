@@ -624,8 +624,9 @@ const Index = () => {
         ) : activeMenu === "pos" && hasAccess(["sales", "admin"]) && role !== "super_admin" ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
+              {/* When products exist, show default layout with filters and items */}
               {products.length > 0 ? (
-                <>
+                <div className="space-y-6 animate-fade-in">
                   <div className="flex items-center justify-between gap-4">
                     <CategoryFilter
                       categories={categories}
@@ -653,8 +654,9 @@ const Index = () => {
                       />
                     ))}
                   </div>
-                </>
+                </div>
               ) : (
+                /* Empty state: centered Add Items button */
                 <div className="flex items-center justify-center min-h-[400px]">
                   <Button
                     variant="secondary"
