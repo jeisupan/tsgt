@@ -188,7 +188,7 @@ export const LogoUpload = () => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div 
-          className={`p-1 rounded-lg bg-white shadow-sm transition-opacity`}
+          className={`p-0 rounded-lg bg-white shadow-sm transition-opacity`}
         >
           <img 
             src={logoUrl} 
