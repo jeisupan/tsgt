@@ -28,6 +28,7 @@ import gasHose from "@/assets/gas-hose.jpg";
 import deliveryService from "@/assets/delivery-service.jpg";
 import refillService from "@/assets/refill-service.jpg";
 import kanjiLogo from "@/assets/kanji-logo.png";
+import placeholderUpload from "@/assets/placeholder-upload.png";
 
 // Gas station products data - exported for inventory component
 export const PRODUCTS: Product[] = [
@@ -298,7 +299,7 @@ const Index = () => {
       name: p.name,
       price: Number(p.price),
       category: p.category,
-      image: p.image_url ? (imageMap[p.image_url] || p.image_url) : "",
+      image: p.image_url ? (imageMap[p.image_url] || p.image_url) : placeholderUpload,
     }));
     
     setProducts(transformedProducts);
