@@ -87,7 +87,15 @@ export const OrderHistory = () => {
     if (!confirm("Are you sure you want to delete this order?")) return;
 
     try {
-      // Delete order items first
+      // Delete outbound transactions first (foreign key constraint)
+      const { error: transactionsError } = await supabase
+        .from("outbound_transactions")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (transactionsError) throw transactionsError;
+
+      // Delete order items
       const { error: itemsError } = await supabase
         .from("order_items")
         .delete()
