@@ -208,6 +208,106 @@ export const OrderHistory = () => {
       const subtotal = total / 1.12; // Price without VAT (VAT is already included)
       const tax = total - subtotal; // 12% VAT amount
 
+      // Compare original and edited items to track inventory changes
+      const inventoryAdjustments: Array<{
+        product_id: string;
+        product_name: string;
+        quantityChange: number;
+        originalQty: number;
+        newQty: number;
+      }> = [];
+
+      for (let i = 0; i < editedItems.length; i++) {
+        const editedItem = editedItems[i];
+        const originalItem = editingOrder.order_items[i];
+        
+        if (editedItem.quantity !== originalItem.quantity) {
+          // Find product_id from order_items table
+          const { data: orderItemData, error: orderItemError } = await supabase
+            .from("order_items")
+            .select("product_id")
+            .eq("order_id", editingOrder.id)
+            .eq("product_name", editedItem.product_name)
+            .single();
+
+          if (orderItemError) throw orderItemError;
+
+          inventoryAdjustments.push({
+            product_id: orderItemData.product_id,
+            product_name: editedItem.product_name,
+            quantityChange: editedItem.quantity - originalItem.quantity,
+            originalQty: originalItem.quantity,
+            newQty: editedItem.quantity
+          });
+        }
+      }
+
+      // Process inventory adjustments
+      for (const adjustment of inventoryAdjustments) {
+        const absChange = Math.abs(adjustment.quantityChange);
+        
+        if (adjustment.quantityChange < 0) {
+          // Quantity reduced - create inbound adjustment (returning stock)
+          const { error: inboundError } = await supabase
+            .from("inbound_transactions")
+            .insert({
+              product_id: adjustment.product_id,
+              product_name: adjustment.product_name,
+              quantity: absChange,
+              transaction_type: "adjustment",
+              notes: `Adjustment for Order #${editingOrder.order_number}: Reduced item count for ${adjustment.product_name} from ${adjustment.originalQty} to ${adjustment.newQty}`
+            });
+
+          if (inboundError) throw inboundError;
+
+          // Update inventory - increase stock
+          const { data: inventoryData, error: inventoryFetchError } = await supabase
+            .from("inventory")
+            .select("current_stock")
+            .eq("product_id", adjustment.product_id)
+            .single();
+
+          if (inventoryFetchError) throw inventoryFetchError;
+
+          const { error: inventoryUpdateError } = await supabase
+            .from("inventory")
+            .update({ current_stock: inventoryData.current_stock + absChange })
+            .eq("product_id", adjustment.product_id);
+
+          if (inventoryUpdateError) throw inventoryUpdateError;
+
+        } else if (adjustment.quantityChange > 0) {
+          // Quantity increased - create outbound adjustment (taking more stock)
+          const { error: outboundError } = await supabase
+            .from("outbound_transactions")
+            .insert({
+              product_id: adjustment.product_id,
+              product_name: adjustment.product_name,
+              quantity: absChange,
+              transaction_type: "adjustment",
+              notes: `Adjustment for Order #${editingOrder.order_number}: Added item count for ${adjustment.product_name} from ${adjustment.originalQty} to ${adjustment.newQty}`
+            });
+
+          if (outboundError) throw outboundError;
+
+          // Update inventory - decrease stock
+          const { data: inventoryData, error: inventoryFetchError } = await supabase
+            .from("inventory")
+            .select("current_stock")
+            .eq("product_id", adjustment.product_id)
+            .single();
+
+          if (inventoryFetchError) throw inventoryFetchError;
+
+          const { error: inventoryUpdateError } = await supabase
+            .from("inventory")
+            .update({ current_stock: inventoryData.current_stock - absChange })
+            .eq("product_id", adjustment.product_id);
+
+          if (inventoryUpdateError) throw inventoryUpdateError;
+        }
+      }
+
       // Update order totals
       const { error: orderError } = await supabase
         .from("orders")
@@ -231,7 +331,7 @@ export const OrderHistory = () => {
         if (itemError) throw itemError;
       }
 
-      toast.success("Order updated successfully");
+      toast.success("Order updated successfully - inventory adjusted");
       setEditingOrder(null);
       fetchOrders();
     } catch (error: any) {
