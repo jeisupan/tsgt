@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Shield, Settings } from "lucide-react";
-import { UserRolesDialog } from "./UserRolesDialog";
+import { UserProfileDialog } from "./UserProfileDialog";
 
 interface Profile {
   id: string;
@@ -149,11 +149,12 @@ export const UserManagement = () => {
       </Card>
 
       {selectedUser && (
-        <UserRolesDialog
+        <UserProfileDialog
           open={isRolesDialogOpen}
           onOpenChange={setIsRolesDialogOpen}
           userId={selectedUser.id}
-          userName={selectedUser.full_name || selectedUser.email}
+          userEmail={selectedUser.email}
+          currentFullName={selectedUser.full_name}
           currentRoles={selectedUser.roles}
           onSuccess={fetchUsers}
         />
