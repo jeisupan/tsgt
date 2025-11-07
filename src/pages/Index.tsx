@@ -104,7 +104,7 @@ const Index = () => {
   const { role, loading: roleLoading, hasAccess } = useUserRole();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [activeMenu, setActiveMenu] = useState<string>("pos");
+  const [activeMenu, setActiveMenu] = useState<string>("");
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
@@ -139,6 +139,31 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Set default active menu based on user role
+  useEffect(() => {
+    if (role && activeMenu === "") {
+      switch (role) {
+        case "sales":
+          setActiveMenu("pos");
+          break;
+        case "inventory":
+          setActiveMenu("inventory");
+          break;
+        case "finance":
+          setActiveMenu("expenses");
+          break;
+        case "super_admin":
+          setActiveMenu("users");
+          break;
+        case "admin":
+          setActiveMenu("pos");
+          break;
+        default:
+          setActiveMenu("pos");
+      }
+    }
+  }, [role, activeMenu]);
 
   // Check if user has a role, if not show pending message
   if (!loading && !roleLoading && user && role === null) {
