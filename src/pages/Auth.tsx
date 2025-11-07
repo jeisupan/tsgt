@@ -279,7 +279,7 @@ const Auth = () => {
               />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">AsensoOS</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Business Management System</CardTitle>
           <CardDescription className="text-center">
             {isResettingPassword ? "Set your new password" : isForgotPassword ? "Reset your password" : isSignUp ? "Create a new account" : "Sign in to access your account"}
           </CardDescription>
