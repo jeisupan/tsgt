@@ -344,12 +344,13 @@ const Index = () => {
   }
 
   const handleCheckout = async (customerId: string, invoiceNumber?: string) => {
-    const subtotal = cartItems.reduce(
+    // Calculate totals - prices already include 12% VAT
+    const total = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subtotal * 0.12; // 12% tax
-    const total = subtotal + tax;
+    const subtotal = total / 1.12; // Price without VAT (VAT is already included)
+    const tax = total - subtotal; // 12% VAT amount
 
     try {
       // Generate order number
