@@ -25,6 +25,9 @@ import { maskEmail, maskPhone, maskAddress } from "@/lib/utils";
 interface Customer {
   id: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  full_name?: string | null;
   email: string | null;
   phone: string | null;
   address: string | null;
@@ -164,7 +167,9 @@ export const CustomerManagement = () => {
             <TableBody>
               {customers.map((customer) => (
                 <TableRow key={customer.id}>
-                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {customer.full_name || customer.name}
+                  </TableCell>
                   {canViewSensitiveData && <TableCell>{customer.email || "-"}</TableCell>}
                   {canViewSensitiveData && <TableCell>{customer.phone || "-"}</TableCell>}
                   {canViewSensitiveData && <TableCell>{customer.address || "-"}</TableCell>}
@@ -214,7 +219,7 @@ export const CustomerManagement = () => {
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Customer History: {historyCustomer?.name}
+              Customer History: {historyCustomer?.full_name || historyCustomer?.name}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -238,7 +243,7 @@ export const CustomerManagement = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Name:</span> {version.name}
+                    <span className="font-medium">Name:</span> {version.full_name || version.name}
                   </div>
                   <div>
                     <span className="font-medium">Email:</span> {canViewSensitiveData ? version.email || "-" : maskEmail(version.email)}

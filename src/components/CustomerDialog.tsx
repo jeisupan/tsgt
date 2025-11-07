@@ -12,7 +12,8 @@ import { Info } from "lucide-react";
 import { z } from "zod";
 
 const customerSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  first_name: z.string().trim().min(1, "First name is required").max(50, "First name must be less than 50 characters"),
+  last_name: z.string().trim().min(1, "Last name is required").max(50, "Last name must be less than 50 characters"),
   email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters").optional().or(z.literal('')),
   phone: z.string().regex(/^[0-9\-\+\(\)\s]*$/, "Phone must contain only numbers and standard formatting characters").max(20, "Phone must be less than 20 characters").optional().or(z.literal('')),
   address: z.string().max(500, "Address must be less than 500 characters").optional().or(z.literal(''))
@@ -21,6 +22,9 @@ const customerSchema = z.object({
 interface Customer {
   id: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  full_name?: string | null;
   email: string | null;
   phone: string | null;
   address: string | null;
@@ -38,7 +42,8 @@ interface CustomerDialogProps {
 export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCustomer, onDuplicateFound }: CustomerDialogProps) => {
   const { role } = useUserRole();
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     address: "",
@@ -51,15 +56,27 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
   // Update form when editing customer changes
   useEffect(() => {
     if (editingCustomer) {
+      // Try to get first_name and last_name, fallback to splitting name
+      let firstName = editingCustomer.first_name || "";
+      let lastName = editingCustomer.last_name || "";
+      
+      if (!firstName && !lastName && editingCustomer.name) {
+        // Split existing name into first and last
+        const nameParts = editingCustomer.name.trim().split(/\s+/);
+        firstName = nameParts[0] || "";
+        lastName = nameParts.slice(1).join(" ") || "";
+      }
+      
       setFormData({
-        name: editingCustomer.name,
+        first_name: firstName,
+        last_name: lastName,
         // Sales role cannot see sensitive data when editing
         email: showSensitiveData ? (editingCustomer.email || "") : "",
         phone: showSensitiveData ? (editingCustomer.phone || "") : "",
         address: showSensitiveData ? (editingCustomer.address || "") : "",
       });
     } else {
-      setFormData({ name: "", email: "", phone: "", address: "" });
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", address: "" });
     }
   }, [editingCustomer, showSensitiveData]);
 
@@ -77,25 +94,35 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
     setIsSubmitting(true);
 
     try {
+      // Compute full_name from first_name and last_name
+      const full_name = `${formData.first_name.trim()} ${formData.last_name.trim()}`.trim();
+      const dataToSave = {
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        full_name,
+        name: full_name, // Keep name for backward compatibility
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
+        address: formData.address.trim() || null,
+      };
+      
       // Check for duplicates (only when creating new customer)
       if (!editingCustomer) {
         let duplicateCustomer: Customer | null = null;
         let duplicateField = "";
         
         // Check for duplicate name
-        if (formData.name.trim()) {
-          const { data } = await supabase
-            .from("customers")
-            .select("*")
-            .eq("is_active", true)
-            .ilike("name", formData.name.trim())
-            .limit(1)
-            .maybeSingle();
-          
-          if (data) {
-            duplicateCustomer = data;
-            duplicateField = "name";
-          }
+        const { data: nameData } = await supabase
+          .from("customers")
+          .select("*")
+          .eq("is_active", true)
+          .or(`name.ilike.${full_name},full_name.ilike.${full_name}`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (nameData) {
+          duplicateCustomer = nameData;
+          duplicateField = "name";
         }
         
         // Check for duplicate email
@@ -163,7 +190,7 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
         const { data: newCustomer, error: insertError } = await supabase
           .from("customers")
           .insert({
-            ...formData,
+            ...dataToSave,
             is_active: true,
             previous_version: editingCustomer.id,
           })
@@ -185,13 +212,13 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
         // Create new customer
         const { error } = await supabase
           .from("customers")
-          .insert([{ ...formData, is_active: true }]);
+          .insert([{ ...dataToSave, is_active: true }]);
 
         if (error) throw error;
         toast.success("Customer added successfully");
       }
 
-      setFormData({ name: "", email: "", phone: "", address: "" });
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", address: "" });
       onCustomerAdded();
       onOpenChange(false);
     } catch (error) {
@@ -223,15 +250,28 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter customer name"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="first_name">First Name *</Label>
+              <Input
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                placeholder="Enter last name"
+                required
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
