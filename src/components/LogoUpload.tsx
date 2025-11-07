@@ -210,7 +210,7 @@ export const LogoUpload = () => {
                   className="text-white hover:text-destructive hover:bg-white/20 h-10 w-10"
                   title="Delete logo and revert to default"
                 >
-                  <Trash2 className="h-6 w-6" />
+                  <Trash2 className="h-8 w-8" />
                 </Button>
               )}
             </div>
