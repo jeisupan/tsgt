@@ -631,12 +631,14 @@ const Index = () => {
               {/* When products exist, show default layout with filters and items */}
               {products.length > 0 ? (
                 <div className="space-y-6 animate-fade-in">
-                  <div className="flex items-center justify-between gap-4">
-                    <CategoryFilter
-                      categories={categories}
-                      selectedCategory={selectedCategory}
-                      onSelectCategory={setSelectedCategory}
-                    />
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex-1">
+                      <CategoryFilter
+                        categories={categories}
+                        selectedCategory={selectedCategory}
+                        onSelectCategory={setSelectedCategory}
+                      />
+                    </div>
                     <Button
                       variant="secondary"
                       onClick={() => setIsProductsModalOpen(true)}
