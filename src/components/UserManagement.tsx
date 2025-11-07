@@ -73,9 +73,22 @@ export const UserManagement = () => {
     // Get current user
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     
-    const { data: profiles, error: profilesError } = await supabase
+    // Get current user's profile to check account_id
+    const { data: currentProfile } = await supabase
       .from("profiles")
-      .select("*");
+      .select("account_id")
+      .eq("id", currentUser?.id)
+      .single();
+    
+    // Build query based on role
+    let profilesQuery = supabase.from("profiles").select("*");
+    
+    // If admin (not super_admin), filter by account_id
+    if (role === "admin" && currentProfile?.account_id) {
+      profilesQuery = profilesQuery.eq("account_id", currentProfile.account_id);
+    }
+    
+    const { data: profiles, error: profilesError } = await profilesQuery;
 
     if (profilesError) {
       console.error("Error fetching profiles:", profilesError);
