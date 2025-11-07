@@ -67,6 +67,53 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          account_id: string | null
+          action: string
+          changed_fields: string[] | null
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          performed_by: string | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          account_id?: string | null
+          action: string
+          changed_fields?: string[] | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_by?: string | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          account_id?: string | null
+          action?: string
+          changed_fields?: string[] | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_by?: string | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           account_id: string | null

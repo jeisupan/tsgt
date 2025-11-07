@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAutoLogout } from "@/hooks/useAutoLogout";
 import { UserManagement } from "@/components/UserManagement";
+import { AuditLogs } from "@/components/AuditLogs";
 import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
 import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
 import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
@@ -617,14 +618,24 @@ const Index = () => {
               )}
               
               {hasAccess(["super_admin", "admin"]) && (
-                <Button
-                  variant={activeMenu === "users" ? "default" : "outline"}
-                  onClick={() => setActiveMenu("users")}
-                  className="gap-2"
-                >
-                  <Shield className="h-5 w-5" />
-                  Users
-                </Button>
+                <>
+                  <Button
+                    variant={activeMenu === "users" ? "default" : "outline"}
+                    onClick={() => setActiveMenu("users")}
+                    className="gap-2"
+                  >
+                    <Shield className="h-5 w-5" />
+                    Users
+                  </Button>
+                  <Button
+                    variant={activeMenu === "audit" ? "default" : "outline"}
+                    onClick={() => setActiveMenu("audit")}
+                    className="gap-2"
+                  >
+                    <Shield className="h-5 w-5" />
+                    Audit Logs
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -634,6 +645,8 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         {activeMenu === "users" ? (
           <UserManagement />
+        ) : activeMenu === "audit" ? (
+          <AuditLogs />
         ) : activeMenu === "inventory" && role !== "super_admin" ? (
           <InventoryManagement />
         ) : activeMenu === "history" && role !== "super_admin" ? (
