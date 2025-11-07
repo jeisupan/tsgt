@@ -29,14 +29,11 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string>(kanjiLogo);
   const [isBusinessSignup, setIsBusinessSignup] = useState(true);
   const [accountName, setAccountName] = useState("");
   const [accountId, setAccountId] = useState("");
 
   useEffect(() => {
-    fetchLogo();
-    
     // Check for existing session first
     supabase.auth.getSession().then(({ data: { session } }) => {
       // Check if this is a recovery session
@@ -86,24 +83,6 @@ const Auth = () => {
     };
   }, []);
 
-  const fetchLogo = async () => {
-    const { data, error } = await supabase
-      .from("app_settings")
-      .select("logo_url")
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching logo:", error);
-      return;
-    }
-
-    if (data?.logo_url) {
-      setLogoUrl(data.logo_url);
-    } else {
-      setLogoUrl(kanjiLogo);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,7 +272,7 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <div className="p-2 rounded-lg bg-white shadow-sm w-full">
               <img 
-                src={logoUrl} 
+                src={kanjiLogo} 
                 alt="Business Logo" 
                 className="h-44 w-full object-contain" 
               />
