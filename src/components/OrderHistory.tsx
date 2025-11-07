@@ -87,6 +87,57 @@ export const OrderHistory = () => {
     if (!confirm("Are you sure you want to delete this order?")) return;
 
     try {
+      // First, fetch the order details and items before deletion
+      const { data: orderData, error: orderFetchError } = await supabase
+        .from("orders")
+        .select("order_number")
+        .eq("id", orderId)
+        .single();
+
+      if (orderFetchError) throw orderFetchError;
+
+      const { data: orderItems, error: itemsFetchError } = await supabase
+        .from("order_items")
+        .select("product_id, product_name, quantity")
+        .eq("order_id", orderId);
+
+      if (itemsFetchError) throw itemsFetchError;
+
+      // Create adjustment inbound transactions for each item
+      if (orderItems && orderItems.length > 0) {
+        const inboundTransactions = orderItems.map(item => ({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          transaction_type: "adjustment",
+          notes: `Adjustment due to deletion of Order #${orderData.order_number}`
+        }));
+
+        const { error: inboundError } = await supabase
+          .from("inbound_transactions")
+          .insert(inboundTransactions);
+
+        if (inboundError) throw inboundError;
+
+        // Update inventory for each product
+        for (const item of orderItems) {
+          const { data: inventoryData, error: inventoryFetchError } = await supabase
+            .from("inventory")
+            .select("current_stock")
+            .eq("product_id", item.product_id)
+            .single();
+
+          if (inventoryFetchError) throw inventoryFetchError;
+
+          const { error: inventoryUpdateError } = await supabase
+            .from("inventory")
+            .update({ current_stock: inventoryData.current_stock + item.quantity })
+            .eq("product_id", item.product_id);
+
+          if (inventoryUpdateError) throw inventoryUpdateError;
+        }
+      }
+
       // Delete outbound transactions first (foreign key constraint)
       const { error: transactionsError } = await supabase
         .from("outbound_transactions")
@@ -111,7 +162,7 @@ export const OrderHistory = () => {
 
       if (orderError) throw orderError;
 
-      toast.success("Order deleted successfully");
+      toast.success("Order deleted successfully - inventory adjusted");
       fetchOrders();
     } catch (error: any) {
       toast.error("Failed to delete order");
