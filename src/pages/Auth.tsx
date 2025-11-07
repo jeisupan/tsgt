@@ -275,7 +275,7 @@ const Auth = () => {
               <img 
                 src={logoUrl} 
                 alt="Business Logo" 
-                className="h-48 w-full object-contain" 
+                className="h-64 w-full object-contain" 
               />
             </div>
           </div>
