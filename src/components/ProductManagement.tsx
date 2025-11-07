@@ -36,23 +36,31 @@ export const ProductManagement = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select(`
-          *,
-          inventory!inventory_product_id_fkey (
-            current_stock
-          )
-        `)
+        .select('*')
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
-      if (error) throw error;
-      
-      // Transform the data to flatten inventory
-      const transformedData = data?.map((product: any) => ({
+      if (productsError) throw productsError;
+
+      // Fetch inventory
+      const { data: inventoryData, error: inventoryError } = await supabase
+        .from('inventory')
+        .select('product_id, current_stock');
+
+      if (inventoryError) throw inventoryError;
+
+      // Create a map of product_id to current_stock
+      const inventoryMap = new Map(
+        inventoryData?.map(inv => [inv.product_id, inv.current_stock]) || []
+      );
+
+      // Merge products with inventory data
+      const transformedData = productsData?.map(product => ({
         ...product,
-        current_stock: product.inventory?.[0]?.current_stock ?? 0
+        current_stock: inventoryMap.get(product.id) ?? 0
       })) || [];
       
       setProducts(transformedData);
