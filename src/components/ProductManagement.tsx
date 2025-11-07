@@ -23,6 +23,7 @@ interface Product {
   price: number;
   category: string;
   image_url: string | null;
+  current_stock?: number;
 }
 
 export const ProductManagement = () => {
@@ -37,12 +38,24 @@ export const ProductManagement = () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          inventory!inventory_product_id_fkey (
+            current_stock
+          )
+        `)
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
       if (error) throw error;
-      setProducts(data || []);
+      
+      // Transform the data to flatten inventory
+      const transformedData = data?.map((product: any) => ({
+        ...product,
+        current_stock: product.inventory?.[0]?.current_stock ?? 0
+      })) || [];
+      
+      setProducts(transformedData);
     } catch (error: any) {
       toast.error("Failed to fetch products");
     } finally {
@@ -137,6 +150,7 @@ export const ProductManagement = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Price</TableHead>
+                <TableHead>Available Stocks</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -155,6 +169,7 @@ export const ProductManagement = () => {
                   <TableCell>{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>₱{product.price.toFixed(2)}</TableCell>
+                  <TableCell>{product.current_stock ?? 0}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
