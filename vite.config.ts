@@ -17,7 +17,13 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query"],
+    include: [
+      "react", 
+      "react-dom", 
+      "react/jsx-runtime", 
+      "@tanstack/react-query",
+      "react-markdown"
+    ],
     exclude: [],
     esbuildOptions: {
       define: {
