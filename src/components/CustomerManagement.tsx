@@ -44,7 +44,7 @@ export const CustomerManagement = () => {
   const [customerHistory, setCustomerHistory] = useState<Customer[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  const canViewSensitiveData = role === "admin" || role === "super_admin";
+  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
 
   const fetchCustomers = async () => {
     setIsLoading(true);
@@ -154,9 +154,9 @@ export const CustomerManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                {canViewSensitiveData && <TableHead>Email</TableHead>}
-                {canViewSensitiveData && <TableHead>Phone</TableHead>}
-                {canViewSensitiveData && <TableHead>Address</TableHead>}
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -164,9 +164,12 @@ export const CustomerManagement = () => {
               {customers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.name}</TableCell>
-                  {canViewSensitiveData && <TableCell>{maskEmail(customer.email)}</TableCell>}
-                  {canViewSensitiveData && <TableCell>{maskPhone(customer.phone)}</TableCell>}
-                  {canViewSensitiveData && <TableCell>{maskAddress(customer.address)}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{customer.email || "-"}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{customer.phone || "-"}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{customer.address || "-"}</TableCell>}
+                  {!canViewSensitiveData && <TableCell>{maskEmail(customer.email)}</TableCell>}
+                  {!canViewSensitiveData && <TableCell>{maskPhone(customer.phone)}</TableCell>}
+                  {!canViewSensitiveData && <TableCell>{maskAddress(customer.address)}</TableCell>}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -235,13 +238,13 @@ export const CustomerManagement = () => {
                     <span className="font-medium">Name:</span> {version.name}
                   </div>
                   <div>
-                    <span className="font-medium">Email:</span> {maskEmail(version.email)}
+                    <span className="font-medium">Email:</span> {canViewSensitiveData ? version.email || "-" : maskEmail(version.email)}
                   </div>
                   <div>
-                    <span className="font-medium">Phone:</span> {maskPhone(version.phone)}
+                    <span className="font-medium">Phone:</span> {canViewSensitiveData ? version.phone || "-" : maskPhone(version.phone)}
                   </div>
                   <div className="col-span-2">
-                    <span className="font-medium">Address:</span> {maskAddress(version.address)}
+                    <span className="font-medium">Address:</span> {canViewSensitiveData ? version.address || "-" : maskAddress(version.address)}
                   </div>
                 </div>
               </div>

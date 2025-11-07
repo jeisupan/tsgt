@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
 import { maskEmail, maskPhone, maskAddress, maskTin } from "@/lib/utils";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Supplier {
   id: string;
@@ -25,10 +26,13 @@ interface Supplier {
 }
 
 export const SupplierManagement = () => {
+  const { role } = useUserRole();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+
+  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
 
   const fetchSuppliers = async () => {
     setIsLoading(true);
@@ -109,10 +113,10 @@ export const SupplierManagement = () => {
               {suppliers.map((supplier) => (
                 <TableRow key={supplier.id}>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
-                  <TableCell>{maskTin(supplier.tin_number)}</TableCell>
-                  <TableCell>{maskEmail(supplier.email)}</TableCell>
-                  <TableCell>{maskPhone(supplier.phone)}</TableCell>
-                  <TableCell>{maskAddress(supplier.address)}</TableCell>
+                  <TableCell>{canViewSensitiveData ? supplier.tin_number || "-" : maskTin(supplier.tin_number)}</TableCell>
+                  <TableCell>{canViewSensitiveData ? supplier.email || "-" : maskEmail(supplier.email)}</TableCell>
+                  <TableCell>{canViewSensitiveData ? supplier.phone || "-" : maskPhone(supplier.phone)}</TableCell>
+                  <TableCell>{canViewSensitiveData ? supplier.address || "-" : maskAddress(supplier.address)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
