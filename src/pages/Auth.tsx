@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { z } from "zod";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
-import kanjiLogo from "@/assets/asenso-logo.png";
+import kanjiLogo from "@/assets/kanji-default-logo.jpg";
 
 const passwordSchema = z.string()
   .min(12, "Password must be at least 12 characters")
