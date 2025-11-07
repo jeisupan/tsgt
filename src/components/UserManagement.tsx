@@ -5,11 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Settings, Search } from "lucide-react";
+import { Shield, Settings, Search, Check, ChevronsUpDown } from "lucide-react";
 import { UserProfileDialog } from "./UserProfileDialog";
 import { useUserRole } from "@/hooks/useUserRole";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface Profile {
   id: string;
@@ -55,6 +57,7 @@ export const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   const isSuperAdmin = role === "super_admin";
 
@@ -175,6 +178,69 @@ export const UserManagement = () => {
         <CardContent>
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            {/* Account Filter - Left side */}
+            {isSuperAdmin && accounts.length > 0 && (
+              <Popover open={accountDropdownOpen} onOpenChange={setAccountDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={accountDropdownOpen}
+                    className="w-full sm:w-[250px] justify-between"
+                  >
+                    {selectedAccount === "all"
+                      ? "All Accounts"
+                      : accounts.find((account) => account.id === selectedAccount)?.account_name || "Select account..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[250px] p-0 bg-background" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search accounts..." />
+                    <CommandList>
+                      <CommandEmpty>No account found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          onSelect={() => {
+                            setSelectedAccount("all");
+                            setAccountDropdownOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedAccount === "all" ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          All Accounts
+                        </CommandItem>
+                        {accounts.map((account) => (
+                          <CommandItem
+                            key={account.id}
+                            value={account.account_name}
+                            onSelect={() => {
+                              setSelectedAccount(account.id);
+                              setAccountDropdownOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedAccount === account.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {account.account_name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+            
+            {/* Search Bar - Right side */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -184,22 +250,6 @@ export const UserManagement = () => {
                 className="pl-9"
               />
             </div>
-            
-            {isSuperAdmin && accounts.length > 0 && (
-              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-                <SelectTrigger className="w-full sm:w-[250px]">
-                  <SelectValue placeholder="Filter by account" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Accounts</SelectItem>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.account_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
           
           <Table>
