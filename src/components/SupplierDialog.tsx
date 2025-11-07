@@ -45,8 +45,9 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
-  const canEdit = role !== "inventory";
+  // Inventory can add new suppliers and view unmasked data when adding, but cannot edit existing
+  const canEditSupplier = !editingSupplier || (role !== "inventory");
+  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance" || (!editingSupplier && role === "inventory");
 
   // Update form when editing supplier changes
   useEffect(() => {
@@ -128,8 +129,8 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               value={canViewSensitiveData || !editingSupplier ? formData.tin_number : maskTin(formData.tin_number)}
               onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
               placeholder="Enter TIN number"
-              disabled={!canEdit}
-              readOnly={!canViewSensitiveData && !!editingSupplier}
+              disabled={!canEditSupplier}
+              readOnly={!canViewSensitiveData}
             />
           </div>
           <div className="space-y-2">
@@ -140,8 +141,8 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               value={canViewSensitiveData || !editingSupplier ? formData.email : maskEmail(formData.email)}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="Enter email address"
-              disabled={!canEdit}
-              readOnly={!canViewSensitiveData && !!editingSupplier}
+              disabled={!canEditSupplier}
+              readOnly={!canViewSensitiveData}
             />
           </div>
           <div className="space-y-2">
@@ -151,8 +152,8 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               value={canViewSensitiveData || !editingSupplier ? formData.phone : maskPhone(formData.phone)}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="Enter phone number"
-              disabled={!canEdit}
-              readOnly={!canViewSensitiveData && !!editingSupplier}
+              disabled={!canEditSupplier}
+              readOnly={!canViewSensitiveData}
             />
           </div>
           <div className="space-y-2">
@@ -163,15 +164,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               placeholder="Enter address"
               rows={3}
-              disabled={!canEdit}
-              readOnly={!canViewSensitiveData && !!editingSupplier}
+              disabled={!canEditSupplier}
+              readOnly={!canViewSensitiveData}
             />
           </div>
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !canEdit}>
+            <Button type="submit" disabled={isSubmitting || !canEditSupplier}>
               {isSubmitting 
                 ? (editingSupplier ? "Updating..." : "Adding...") 
                 : (editingSupplier ? "Update Supplier" : "Add Supplier")
