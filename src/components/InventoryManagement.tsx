@@ -7,9 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Package, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Package, TrendingUp, TrendingDown, AlertCircle, CalendarIcon, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+import * as XLSX from "xlsx";
 
 interface ProductFromDB {
   id: string;
@@ -59,6 +65,15 @@ export const InventoryManagement = () => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<ProductFromDB[]>([]);
   const [activeTab, setActiveTab] = useState("inventory");
+  
+  // Date filtering states
+  const [inboundDateRange, setInboundDateRange] = useState<DateRange | undefined>();
+  const [inboundSingleDate, setInboundSingleDate] = useState<Date | undefined>();
+  const [inboundFilterMode, setInboundFilterMode] = useState<"single" | "range">("single");
+  
+  const [outboundDateRange, setOutboundDateRange] = useState<DateRange | undefined>();
+  const [outboundSingleDate, setOutboundSingleDate] = useState<Date | undefined>();
+  const [outboundFilterMode, setOutboundFilterMode] = useState<"single" | "range">("single");
 
   const canAdjustStock = role === "inventory" || role === "admin" || role === "super_admin";
 
@@ -143,6 +158,92 @@ export const InventoryManagement = () => {
     } else {
       setOutboundHistory(data || []);
     }
+  };
+
+  // Filter functions
+  const filteredInboundHistory = inboundHistory.filter((transaction) => {
+    const transactionDate = new Date(transaction.created_at);
+    
+    if (inboundFilterMode === "single" && inboundSingleDate) {
+      const selectedDay = startOfDay(inboundSingleDate);
+      const transactionDay = startOfDay(transactionDate);
+      return transactionDay.getTime() === selectedDay.getTime();
+    }
+    
+    if (inboundFilterMode === "range" && inboundDateRange?.from) {
+      const from = startOfDay(inboundDateRange.from);
+      const to = inboundDateRange.to ? endOfDay(inboundDateRange.to) : endOfDay(inboundDateRange.from);
+      return isWithinInterval(transactionDate, { start: from, end: to });
+    }
+    
+    return true;
+  });
+
+  const filteredOutboundHistory = outboundHistory.filter((transaction) => {
+    const transactionDate = new Date(transaction.created_at);
+    
+    if (outboundFilterMode === "single" && outboundSingleDate) {
+      const selectedDay = startOfDay(outboundSingleDate);
+      const transactionDay = startOfDay(transactionDate);
+      return transactionDay.getTime() === selectedDay.getTime();
+    }
+    
+    if (outboundFilterMode === "range" && outboundDateRange?.from) {
+      const from = startOfDay(outboundDateRange.from);
+      const to = outboundDateRange.to ? endOfDay(outboundDateRange.to) : endOfDay(outboundDateRange.from);
+      return isWithinInterval(transactionDate, { start: from, end: to });
+    }
+    
+    return true;
+  });
+
+  const clearInboundFilters = () => {
+    setInboundSingleDate(undefined);
+    setInboundDateRange(undefined);
+  };
+
+  const clearOutboundFilters = () => {
+    setOutboundSingleDate(undefined);
+    setOutboundDateRange(undefined);
+  };
+
+  // Excel export functions
+  const exportInboundToExcel = () => {
+    const dataToExport = filteredInboundHistory.map(transaction => ({
+      "Product Name": transaction.product_name,
+      "Quantity": transaction.quantity,
+      "Transaction Type": transaction.transaction_type,
+      "Supplier": transaction.supplier || "-",
+      "Notes": transaction.notes || "-",
+      "Date": format(new Date(transaction.created_at), "PPP")
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inbound Transactions");
+    
+    const filename = `inbound_transactions_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+    toast.success("Inbound transactions exported successfully");
+  };
+
+  const exportOutboundToExcel = () => {
+    const dataToExport = filteredOutboundHistory.map(transaction => ({
+      "Product Name": transaction.product_name,
+      "Quantity": transaction.quantity,
+      "Transaction Type": transaction.transaction_type,
+      "Destination": transaction.destination || "-",
+      "Notes": transaction.notes || "-",
+      "Date": format(new Date(transaction.created_at), "PPP")
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Outbound Transactions");
+    
+    const filename = `outbound_transactions_${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+    toast.success("Outbound transactions exported successfully");
   };
 
   const handleInboundSubmit = async (e: React.FormEvent) => {
@@ -414,12 +515,125 @@ export const InventoryManagement = () => {
           )}
 
           <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4">Inbound History</h3>
+            <div className="flex flex-col gap-4 mb-4">
+              <h3 className="text-xl font-semibold">Inbound History</h3>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={inboundFilterMode === "single" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setInboundFilterMode("single")}
+                  >
+                    Single Date
+                  </Button>
+                  <Button
+                    variant={inboundFilterMode === "range" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setInboundFilterMode("range")}
+                  >
+                    Date Range
+                  </Button>
+                </div>
+
+                {inboundFilterMode === "single" ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !inboundSingleDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {inboundSingleDate ? format(inboundSingleDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={inboundSingleDate}
+                        onSelect={setInboundSingleDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !inboundDateRange && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {inboundDateRange?.from ? (
+                          inboundDateRange.to ? (
+                            <>
+                              {format(inboundDateRange.from, "LLL dd, y")} -{" "}
+                              {format(inboundDateRange.to, "LLL dd, y")}
+                            </>
+                          ) : (
+                            format(inboundDateRange.from, "LLL dd, y")
+                          )
+                        ) : (
+                          <span>Pick a date range</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={inboundDateRange}
+                        onSelect={setInboundDateRange}
+                        numberOfMonths={2}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportInboundToExcel}
+                  className="gap-2"
+                  disabled={filteredInboundHistory.length === 0}
+                >
+                  <Download className="h-4 w-4" />
+                  Export to Excel
+                </Button>
+
+                {(inboundSingleDate || inboundDateRange) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearInboundFilters}
+                    className="gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear
+                  </Button>
+                )}
+
+                <span className="text-sm text-muted-foreground ml-auto">
+                  Showing {filteredInboundHistory.length} of {inboundHistory.length} transactions
+                </span>
+              </div>
+            </div>
+
             <div className="space-y-3">
-              {inboundHistory.length === 0 ? (
-                <p className="text-muted-foreground">No inbound transactions yet</p>
+              {filteredInboundHistory.length === 0 ? (
+                <p className="text-muted-foreground">
+                  {inboundHistory.length === 0 ? "No inbound transactions yet" : "No transactions found for selected date(s)"}
+                </p>
               ) : (
-                inboundHistory.map((transaction) => (
+                filteredInboundHistory.map((transaction) => (
                   <div
                     key={transaction.id}
                     className="flex items-center justify-between p-4 border border-border rounded-lg"
@@ -530,12 +744,125 @@ export const InventoryManagement = () => {
           )}
 
           <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4">Outbound History</h3>
+            <div className="flex flex-col gap-4 mb-4">
+              <h3 className="text-xl font-semibold">Outbound History</h3>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={outboundFilterMode === "single" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOutboundFilterMode("single")}
+                  >
+                    Single Date
+                  </Button>
+                  <Button
+                    variant={outboundFilterMode === "range" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOutboundFilterMode("range")}
+                  >
+                    Date Range
+                  </Button>
+                </div>
+
+                {outboundFilterMode === "single" ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !outboundSingleDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {outboundSingleDate ? format(outboundSingleDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={outboundSingleDate}
+                        onSelect={setOutboundSingleDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !outboundDateRange && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {outboundDateRange?.from ? (
+                          outboundDateRange.to ? (
+                            <>
+                              {format(outboundDateRange.from, "LLL dd, y")} -{" "}
+                              {format(outboundDateRange.to, "LLL dd, y")}
+                            </>
+                          ) : (
+                            format(outboundDateRange.from, "LLL dd, y")
+                          )
+                        ) : (
+                          <span>Pick a date range</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={outboundDateRange}
+                        onSelect={setOutboundDateRange}
+                        numberOfMonths={2}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportOutboundToExcel}
+                  className="gap-2"
+                  disabled={filteredOutboundHistory.length === 0}
+                >
+                  <Download className="h-4 w-4" />
+                  Export to Excel
+                </Button>
+
+                {(outboundSingleDate || outboundDateRange) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearOutboundFilters}
+                    className="gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear
+                  </Button>
+                )}
+
+                <span className="text-sm text-muted-foreground ml-auto">
+                  Showing {filteredOutboundHistory.length} of {outboundHistory.length} transactions
+                </span>
+              </div>
+            </div>
+
             <div className="space-y-3">
-              {outboundHistory.length === 0 ? (
-                <p className="text-muted-foreground">No outbound transactions yet</p>
+              {filteredOutboundHistory.length === 0 ? (
+                <p className="text-muted-foreground">
+                  {outboundHistory.length === 0 ? "No outbound transactions yet" : "No transactions found for selected date(s)"}
+                </p>
               ) : (
-                outboundHistory.map((transaction) => (
+                filteredOutboundHistory.map((transaction) => (
                   <div
                     key={transaction.id}
                     className="flex items-center justify-between p-4 border border-border rounded-lg"
