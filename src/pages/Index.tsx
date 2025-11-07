@@ -713,6 +713,10 @@ const Index = () => {
         product={editingProduct}
         onSuccess={() => {
           fetchProducts();
+          // Double refresh to ensure changes are visible
+          setTimeout(() => {
+            fetchProducts();
+          }, 100);
           setIsProductDialogOpen(false);
           setEditingProduct(null);
         }}

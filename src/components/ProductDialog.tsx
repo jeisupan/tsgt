@@ -183,8 +183,14 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
         toast.success("Product added successfully");
       }
 
+      // Force immediate refresh
       onSuccess();
       onOpenChange(false);
+      
+      // Small delay to ensure DB has propagated
+      setTimeout(() => {
+        onSuccess();
+      }, 100);
     } catch (error: any) {
       toast.error(error.message || "Failed to save product");
     } finally {

@@ -149,6 +149,8 @@ export const ProductManagement = () => {
       toast.success("Product deleted successfully");
       setDeleteDialogOpen(false);
       setProductToDelete(null);
+      // Force immediate refresh
+      await fetchProducts();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete product");
     }
