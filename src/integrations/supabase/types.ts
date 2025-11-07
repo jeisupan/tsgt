@@ -104,6 +104,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          account_id: string | null
           address: string | null
           created_at: string
           email: string | null
@@ -119,6 +120,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           address?: string | null
           created_at?: string
           email?: string | null
@@ -134,6 +136,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           address?: string | null
           created_at?: string
           email?: string | null
@@ -149,6 +152,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "customers_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "customers_previous_version_fkey"
             columns: ["previous_version"]
@@ -167,6 +177,7 @@ export type Database = {
       }
       expense_particulars: {
         Row: {
+          account_id: string | null
           amount: number
           amount_excluding_vat: number | null
           category: string | null
@@ -181,6 +192,7 @@ export type Database = {
           vat_amount: number | null
         }
         Insert: {
+          account_id?: string | null
           amount: number
           amount_excluding_vat?: number | null
           category?: string | null
@@ -195,6 +207,7 @@ export type Database = {
           vat_amount?: number | null
         }
         Update: {
+          account_id?: string | null
           amount?: number
           amount_excluding_vat?: number | null
           category?: string | null
@@ -209,6 +222,13 @@ export type Database = {
           vat_amount?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "expense_particulars_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expense_particulars_expense_id_fkey"
             columns: ["expense_id"]
@@ -227,6 +247,7 @@ export type Database = {
       }
       inbound_transactions: {
         Row: {
+          account_id: string | null
           created_at: string
           id: string
           notes: string | null
@@ -237,6 +258,7 @@ export type Database = {
           transaction_type: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -247,6 +269,7 @@ export type Database = {
           transaction_type?: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -256,7 +279,15 @@ export type Database = {
           supplier?: string | null
           transaction_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inbound_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory: {
         Row: {
@@ -304,6 +335,7 @@ export type Database = {
       }
       operations_expense: {
         Row: {
+          account_id: string | null
           amount: number
           branch: string
           category: string
@@ -320,6 +352,7 @@ export type Database = {
           voucher_type: string
         }
         Insert: {
+          account_id?: string | null
           amount: number
           branch: string
           category: string
@@ -336,6 +369,7 @@ export type Database = {
           voucher_type: string
         }
         Update: {
+          account_id?: string | null
           amount?: number
           branch?: string
           category?: string
@@ -353,6 +387,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "operations_expense_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "operations_expense_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
@@ -363,6 +404,7 @@ export type Database = {
       }
       order_items: {
         Row: {
+          account_id: string | null
           created_at: string
           id: string
           line_total: number
@@ -374,6 +416,7 @@ export type Database = {
           quantity: number
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           id?: string
           line_total: number
@@ -385,6 +428,7 @@ export type Database = {
           quantity: number
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           id?: string
           line_total?: number
@@ -397,6 +441,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "order_items_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -407,6 +458,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          account_id: string | null
           created_at: string
           customer_id: string | null
           id: string
@@ -416,6 +468,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -425,6 +478,7 @@ export type Database = {
           total: number
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -434,6 +488,13 @@ export type Database = {
           total?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_customer_id_fkey"
             columns: ["customer_id"]
@@ -445,6 +506,7 @@ export type Database = {
       }
       outbound_transactions: {
         Row: {
+          account_id: string | null
           created_at: string
           destination: string | null
           id: string
@@ -456,6 +518,7 @@ export type Database = {
           transaction_type: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           destination?: string | null
           id?: string
@@ -467,6 +530,7 @@ export type Database = {
           transaction_type: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           destination?: string | null
           id?: string
@@ -478,6 +542,13 @@ export type Database = {
           transaction_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "outbound_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "outbound_transactions_order_id_fkey"
             columns: ["order_id"]
@@ -571,6 +642,7 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          account_id: string | null
           address: string | null
           created_at: string
           email: string | null
@@ -584,6 +656,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           address?: string | null
           created_at?: string
           email?: string | null
@@ -597,6 +670,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           address?: string | null
           created_at?: string
           email?: string | null
@@ -610,6 +684,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "suppliers_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "suppliers_previous_version_fkey"
             columns: ["previous_version"]

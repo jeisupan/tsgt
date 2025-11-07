@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const supplierSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -36,6 +37,7 @@ export const AddSupplierMiniDialog = ({
   onOpenChange, 
   onSupplierAdded 
 }: AddSupplierMiniDialogProps) => {
+  const { accountId } = useUserRole();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -85,6 +87,7 @@ export const AddSupplierMiniDialog = ({
           phone: formData.phone,
           tin_number: formData.tin_number,
           address: formData.address || null,
+          account_id: accountId,
         }])
         .select()
         .single();

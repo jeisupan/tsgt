@@ -40,7 +40,7 @@ interface OrderItem {
 }
 
 export const OrderHistory = () => {
-  const { role, canEdit } = useUserRole();
+  const { role, canEdit, accountId } = useUserRole();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -178,7 +178,8 @@ export const OrderHistory = () => {
           product_name: item.product_name,
           quantity: item.quantity,
           transaction_type: "adjustment",
-          notes: `Adjustment due to deletion of Order #${orderData.order_number}`
+          notes: `Adjustment due to deletion of Order #${orderData.order_number}`,
+          account_id: accountId,
         }));
 
         const { error: inboundError } = await supabase
@@ -323,7 +324,8 @@ export const OrderHistory = () => {
               product_name: adjustment.product_name,
               quantity: absChange,
               transaction_type: "adjustment",
-              notes: `Adjustment for Order #${editingOrder.order_number}: Reduced item count for ${adjustment.product_name} from ${adjustment.originalQty} to ${adjustment.newQty}`
+              notes: `Adjustment for Order #${editingOrder.order_number}: Reduced item count for ${adjustment.product_name} from ${adjustment.originalQty} to ${adjustment.newQty}`,
+              account_id: accountId,
             });
 
           if (inboundError) throw inboundError;
@@ -353,7 +355,8 @@ export const OrderHistory = () => {
               product_name: adjustment.product_name,
               quantity: absChange,
               transaction_type: "adjustment",
-              notes: `Adjustment for Order #${editingOrder.order_number}: Added item count for ${adjustment.product_name} from ${adjustment.originalQty} to ${adjustment.newQty}`
+              notes: `Adjustment for Order #${editingOrder.order_number}: Added item count for ${adjustment.product_name} from ${adjustment.originalQty} to ${adjustment.newQty}`,
+              account_id: accountId,
             });
 
           if (outboundError) throw outboundError;

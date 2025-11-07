@@ -40,7 +40,7 @@ interface CustomerDialogProps {
 }
 
 export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCustomer, onDuplicateFound }: CustomerDialogProps) => {
-  const { role } = useUserRole();
+  const { role, accountId } = useUserRole();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -193,6 +193,7 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
             ...dataToSave,
             is_active: true,
             previous_version: editingCustomer.id,
+            account_id: accountId,
           })
           .select()
           .single();
@@ -212,7 +213,7 @@ export const CustomerDialog = ({ open, onOpenChange, onCustomerAdded, editingCus
         // Create new customer
         const { error } = await supabase
           .from("customers")
-          .insert([{ ...dataToSave, is_active: true }]);
+          .insert([{ ...dataToSave, is_active: true, account_id: accountId }]);
 
         if (error) throw error;
         toast.success("Customer added successfully");

@@ -35,7 +35,7 @@ interface SupplierDialogProps {
 }
 
 export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSupplier }: SupplierDialogProps) => {
-  const { role } = useUserRole();
+  const { role, accountId } = useUserRole();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -81,14 +81,14 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
         // Update existing supplier
         const { error } = await supabase
           .from("suppliers")
-          .update(formData)
+          .update({ ...formData, account_id: accountId })
           .eq("id", editingSupplier.id);
 
         if (error) throw error;
         toast.success("Supplier updated successfully");
       } else {
         // Create new supplier
-        const { error } = await supabase.from("suppliers").insert([formData]);
+        const { error } = await supabase.from("suppliers").insert([{ ...formData, account_id: accountId }]);
 
         if (error) throw error;
         toast.success("Supplier added successfully");

@@ -102,7 +102,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { role, loading: roleLoading, hasAccess } = useUserRole();
+  const { role, loading: roleLoading, hasAccess, accountId } = useUserRole();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activeMenu, setActiveMenu] = useState<string>("");
@@ -438,6 +438,7 @@ const Index = () => {
           tax: tax,
           total: total,
           customer_id: customerId,
+          account_id: accountId,
         })
         .select()
         .single();
@@ -453,6 +454,7 @@ const Index = () => {
         price: item.price,
         quantity: item.quantity,
         line_total: item.price * item.quantity,
+        account_id: accountId,
       }));
 
       const { error: itemsError } = await supabase
@@ -470,6 +472,7 @@ const Index = () => {
           quantity: item.quantity,
           transaction_type: "sale",
           order_id: orderData.id,
+          account_id: accountId,
         });
 
         if (outboundError) throw outboundError;

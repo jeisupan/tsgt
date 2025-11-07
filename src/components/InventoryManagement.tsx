@@ -295,6 +295,7 @@ export const InventoryManagement = () => {
           transaction_type: inboundType,
           supplier: inboundSupplier || null,
           notes: inboundNotes || null,
+          account_id: accountId,
         });
 
       if (transactionError) throw transactionError;
@@ -387,6 +388,7 @@ export const InventoryManagement = () => {
           transaction_type: outboundType,
           destination: outboundDestination || null,
           notes: outboundNotes || null,
+          account_id: accountId,
         });
 
       if (transactionError) throw transactionError;

@@ -17,6 +17,7 @@ import {
 import { z } from "zod";
 import { Plus, Trash2 } from "lucide-react";
 import { AddSupplierMiniDialog } from "@/components/AddSupplierMiniDialog";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const expenseSchema = z.object({
   voucher_number: z.string().trim().min(1, "Voucher number is required").max(50, "Voucher number must be less than 50 characters"),
@@ -87,6 +88,7 @@ export const OperationsExpenseDialog = ({
   onExpenseAdded, 
   editingExpense 
 }: OperationsExpenseDialogProps) => {
+  const { accountId } = useUserRole();
   const [formData, setFormData] = useState({
     voucher_number: "",
     voucher_type: "",
@@ -302,6 +304,7 @@ export const OperationsExpenseDialog = ({
         remarks: particulars[0].remarks || null,
         supplier_id: particulars[0].supplier_id,
         amount: totalAmount,
+        account_id: accountId,
         // Keep old format for backward compatibility
         particulars: particulars[0].particular_name,
         category: particulars[0].category || "other",
@@ -348,6 +351,7 @@ export const OperationsExpenseDialog = ({
         is_taxable: p.is_taxable,
         amount_excluding_vat: p.amount_excluding_vat ? parseFloat(p.amount_excluding_vat) : null,
         vat_amount: p.vat_amount ? parseFloat(p.vat_amount) : null,
+        account_id: accountId,
       }));
 
       const { error: particularsError } = await supabase
