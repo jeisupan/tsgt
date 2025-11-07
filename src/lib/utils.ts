@@ -38,7 +38,7 @@ export function maskAddress(address: string | null): string {
   if (!address) return "-";
   
   const halfLength = Math.ceil(address.length / 2);
-  const visible = address.slice(0, halfLength);
+  const visible = address.slice(halfLength);
   
-  return `${visible}***`;
+  return `***${visible}`;
 }
