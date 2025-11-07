@@ -3,7 +3,7 @@ import { Pencil, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
-import kanjiLogo from "@/assets/current-logo.png";
+import kanjiLogo from "@/assets/asenso-logo.png";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
