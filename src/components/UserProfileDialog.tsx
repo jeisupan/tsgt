@@ -108,16 +108,6 @@ export const UserProfileDialog = ({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              value={userEmail}
-              disabled
-              className="bg-muted"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
             <Input
               id="fullName"
