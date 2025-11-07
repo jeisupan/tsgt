@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          account_name: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: string
@@ -432,6 +453,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_id: string | null
           created_at: string
           email: string
           first_name: string | null
@@ -441,6 +463,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -450,6 +473,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
@@ -458,7 +482,15 @@ export type Database = {
           last_name?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
@@ -519,6 +551,7 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          account_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -526,6 +559,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -533,13 +567,22 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

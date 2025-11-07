@@ -26,7 +26,7 @@ export const useUserRole = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      setAccountId(profile?.account_id || null);
+      setAccountId((profile as any)?.account_id || null);
 
       const { data, error } = await supabase
         .from("user_roles")
