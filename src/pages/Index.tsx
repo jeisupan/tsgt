@@ -24,6 +24,7 @@ import gasRegulator from "@/assets/gas-regulator.jpg";
 import gasHose from "@/assets/gas-hose.jpg";
 import deliveryService from "@/assets/delivery-service.jpg";
 import refillService from "@/assets/refill-service.jpg";
+import kanjiLogo from "@/assets/kanji-logo.png";
 
 // Gas station products data - exported for inventory component
 export const PRODUCTS: Product[] = [
@@ -428,15 +429,7 @@ const Index = () => {
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-secondary">
-                <Fuel className="h-8 w-8 text-white" />
-              </div>
-              <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Business Management System
-                </h1>
-                <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
-              </div>
+              <img src={kanjiLogo} alt="Kanji AI Apps" className="h-16 w-auto" />
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground hidden md:inline">{user?.email}</span>
