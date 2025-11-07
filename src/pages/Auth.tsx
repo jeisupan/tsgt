@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { z } from "zod";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
+import kanjiLogo from "@/assets/logo-black-text.png";
 
 const passwordSchema = z.string()
   .min(12, "Password must be at least 12 characters")
@@ -28,8 +29,11 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>(kanjiLogo);
 
   useEffect(() => {
+    fetchLogo();
+    
     // Check for existing session first
     supabase.auth.getSession().then(({ data: { session } }) => {
       // Check if this is a recovery session
@@ -78,6 +82,25 @@ const Auth = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const fetchLogo = async () => {
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("logo_url")
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching logo:", error);
+      return;
+    }
+
+    if (data?.logo_url) {
+      setLogoUrl(data.logo_url);
+    } else {
+      setLogoUrl(kanjiLogo);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,6 +270,15 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <div className="flex justify-center mb-4">
+            <div className="p-1 rounded-lg bg-white shadow-sm">
+              <img 
+                src={logoUrl} 
+                alt="Business Logo" 
+                className="h-24 w-24 object-contain" 
+              />
+            </div>
+          </div>
           <CardTitle className="text-2xl font-bold text-center">Business Management System</CardTitle>
           <CardDescription className="text-center">
             {isResettingPassword ? "Set your new password" : isForgotPassword ? "Reset your password" : isSignUp ? "Create a new account" : "Sign in to access your account"}
