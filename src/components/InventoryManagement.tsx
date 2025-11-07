@@ -291,7 +291,7 @@ export const InventoryManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${canAdjustStock ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {canAdjustStock && <TabsTrigger value="inventory">Current Stock</TabsTrigger>}
           <TabsTrigger value="inbound">Inbound</TabsTrigger>
           <TabsTrigger value="outbound">Outbound</TabsTrigger>
