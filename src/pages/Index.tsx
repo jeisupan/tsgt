@@ -618,7 +618,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && (
+              {hasAccess(["super_admin"]) && (
                 <Button
                   variant={activeMenu === "insights" ? "default" : "outline"}
                   onClick={() => setActiveMenu("insights")}
@@ -660,6 +660,8 @@ const Index = () => {
           <UserManagement />
         ) : activeMenu === "audit" ? (
           <AuditLogs />
+        ) : activeMenu === "insights" && role === "super_admin" ? (
+          <InventoryInsights />
         ) : activeMenu === "inventory" && role !== "super_admin" ? (
           <InventoryManagement />
         ) : activeMenu === "history" && role !== "super_admin" ? (
@@ -670,8 +672,6 @@ const Index = () => {
           <SupplierManagement />
         ) : activeMenu === "expenses" && role !== "super_admin" ? (
           <OperationsExpense />
-        ) : activeMenu === "insights" && role !== "super_admin" ? (
-          <InventoryInsights />
         ) : activeMenu === "pos" && hasAccess(["sales", "admin"]) && role !== "super_admin" ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
