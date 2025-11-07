@@ -628,10 +628,9 @@ const Index = () => {
         ) : activeMenu === "pos" && hasAccess(["sales", "admin"]) && role !== "super_admin" ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
-              {/* When products exist, show default layout with filters and items */}
-              {products.length > 0 ? (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  {products.length > 0 ? (
                     <div className="flex-1">
                       <CategoryFilter
                         categories={categories}
@@ -639,16 +638,20 @@ const Index = () => {
                         onSelectCategory={setSelectedCategory}
                       />
                     </div>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setIsProductsModalOpen(true)}
-                      className="gap-2 shrink-0"
-                    >
-                      <ShoppingBag className="h-4 w-4" />
-                      Manage Items
-                    </Button>
-                  </div>
+                  ) : (
+                    <div className="flex-1"></div>
+                  )}
+                  <Button
+                    variant="secondary"
+                    onClick={() => setIsProductsModalOpen(true)}
+                    className="gap-2 shrink-0"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    {products.length > 0 ? "Manage Items" : "Add Items"}
+                  </Button>
+                </div>
 
+                {products.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
                       <ProductCard
@@ -660,21 +663,12 @@ const Index = () => {
                       />
                     ))}
                   </div>
-                </div>
-              ) : (
-                /* Empty state: centered Add Items button */
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    onClick={() => setIsProductsModalOpen(true)}
-                    className="gap-2 animate-pulse"
-                  >
-                    <ShoppingBag className="h-5 w-5" />
-                    Add Items
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center justify-center min-h-[400px] border-2 border-dashed border-border rounded-lg">
+                    <p className="text-muted-foreground">No items yet. Click "Add Items" to get started.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="lg:sticky lg:top-8 h-fit">
