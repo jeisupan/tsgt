@@ -215,7 +215,7 @@ export const InventoryManagement = () => {
       "Transaction Type": transaction.transaction_type,
       "Supplier": transaction.supplier || "-",
       "Notes": transaction.notes || "-",
-      "Date": format(new Date(transaction.created_at), "PPP")
+      "Date": format(new Date(transaction.created_at), "yyyy-MM-dd HH:mm:ss")
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -234,7 +234,7 @@ export const InventoryManagement = () => {
       "Transaction Type": transaction.transaction_type,
       "Destination": transaction.destination || "-",
       "Notes": transaction.notes || "-",
-      "Date": format(new Date(transaction.created_at), "PPP")
+      "Date": format(new Date(transaction.created_at), "yyyy-MM-dd HH:mm:ss")
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);

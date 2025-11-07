@@ -82,7 +82,7 @@ export const OrderHistory = () => {
     const dataToExport = filteredOrders.flatMap(order => 
       order.order_items.map(item => ({
         "Order Number": order.order_number,
-        "Date": format(new Date(order.created_at), "PPP"),
+        "Date": format(new Date(order.created_at), "yyyy-MM-dd HH:mm:ss"),
         "Product": item.product_name,
         "Quantity": item.quantity,
         "Price": `₱${item.price.toFixed(2)}`,
