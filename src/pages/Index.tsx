@@ -618,24 +618,25 @@ const Index = () => {
               )}
               
               {hasAccess(["super_admin", "admin"]) && (
-                <>
-                  <Button
-                    variant={activeMenu === "users" ? "default" : "outline"}
-                    onClick={() => setActiveMenu("users")}
-                    className="gap-2"
-                  >
-                    <Shield className="h-5 w-5" />
-                    Users
-                  </Button>
-                  <Button
-                    variant={activeMenu === "audit" ? "default" : "outline"}
-                    onClick={() => setActiveMenu("audit")}
-                    className="gap-2"
-                  >
-                    <Shield className="h-5 w-5" />
-                    Audit Logs
-                  </Button>
-                </>
+                <Button
+                  variant={activeMenu === "users" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("users")}
+                  className="gap-2"
+                >
+                  <Shield className="h-5 w-5" />
+                  Users
+                </Button>
+              )}
+              
+              {hasAccess(["super_admin"]) && (
+                <Button
+                  variant={activeMenu === "audit" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("audit")}
+                  className="gap-2"
+                >
+                  <Shield className="h-5 w-5" />
+                  Audit Logs
+                </Button>
               )}
             </div>
           </div>

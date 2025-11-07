@@ -5,8 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, User, Clock } from "lucide-react";
+import { Shield, User, Clock, Lock } from "lucide-react";
 import { format } from "date-fns";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface AuditLog {
   id: string;
@@ -28,6 +29,26 @@ export const AuditLogs = () => {
   const [loading, setLoading] = useState(true);
   const [filterTable, setFilterTable] = useState<string>("all");
   const [filterAction, setFilterAction] = useState<string>("all");
+  const { role } = useUserRole();
+
+  // Check if user is super admin
+  if (role !== "super_admin") {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="flex flex-col items-center justify-center text-center gap-4">
+            <Lock className="h-12 w-12 text-muted-foreground" />
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Access Restricted</h3>
+              <p className="text-muted-foreground">
+                Only Super Admins can view audit logs.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   useEffect(() => {
     fetchAuditLogs();
