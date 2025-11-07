@@ -140,27 +140,22 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Set default active menu based on user role
+  // Set default active menu based on user role (priority order for multiple roles)
   useEffect(() => {
     if (role && activeMenu === "") {
-      switch (role) {
-        case "sales":
-          setActiveMenu("pos");
-          break;
-        case "inventory":
-          setActiveMenu("inventory");
-          break;
-        case "finance":
-          setActiveMenu("expenses");
-          break;
-        case "super_admin":
-          setActiveMenu("users");
-          break;
-        case "admin":
-          setActiveMenu("pos");
-          break;
-        default:
-          setActiveMenu("pos");
+      // Priority order: super_admin > admin > finance > inventory > sales
+      if (role === "super_admin") {
+        setActiveMenu("users");
+      } else if (role === "admin") {
+        setActiveMenu("pos");
+      } else if (role === "finance") {
+        setActiveMenu("expenses");
+      } else if (role === "inventory") {
+        setActiveMenu("inventory");
+      } else if (role === "sales") {
+        setActiveMenu("pos");
+      } else {
+        setActiveMenu("pos");
       }
     }
   }, [role, activeMenu]);
