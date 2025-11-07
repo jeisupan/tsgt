@@ -81,7 +81,12 @@ export const InventoryManagement = () => {
     fetchInventory();
     fetchInboundHistory();
     fetchOutboundHistory();
-  }, []);
+    
+    // Set default tab based on role
+    if (role === "finance") {
+      setActiveTab("inbound");
+    }
+  }, [role]);
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
@@ -287,12 +292,13 @@ export const InventoryManagement = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="inventory">Current Stock</TabsTrigger>
+          {canAdjustStock && <TabsTrigger value="inventory">Current Stock</TabsTrigger>}
           <TabsTrigger value="inbound">Inbound</TabsTrigger>
           <TabsTrigger value="outbound">Outbound</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="inventory" className="space-y-4">
+        {canAdjustStock && (
+          <TabsContent value="inventory" className="space-y-4">
           <Card className="p-6">
             <h3 className="text-xl font-semibold mb-4">Current Inventory Levels</h3>
             {loading ? (
@@ -325,6 +331,7 @@ export const InventoryManagement = () => {
             )}
           </Card>
         </TabsContent>
+        )}
 
         <TabsContent value="inbound" className="space-y-4">
           {canAdjustStock && (
