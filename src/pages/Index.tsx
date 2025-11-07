@@ -450,7 +450,7 @@ const Index = () => {
               <LogoUpload />
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Business Management System
+                  AsensoOS
                 </h1>
                 <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
               </div>
