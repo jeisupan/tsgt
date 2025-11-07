@@ -416,7 +416,7 @@ export const InventoryManagement = () => {
                     <div className="flex-1">
                       <h4 className="font-semibold">{transaction.product_name}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {transaction.transaction_type}
+                        {transaction.transaction_type.toUpperCase()}
                         {transaction.supplier && ` • ${transaction.supplier}`}
                       </p>
                       {transaction.notes && (
@@ -527,7 +527,7 @@ export const InventoryManagement = () => {
                     <div className="flex-1">
                       <h4 className="font-semibold">{transaction.product_name}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {transaction.transaction_type}
+                        {transaction.transaction_type.toUpperCase()}
                         {transaction.destination && ` • ${transaction.destination}`}
                       </p>
                       {transaction.notes && (
