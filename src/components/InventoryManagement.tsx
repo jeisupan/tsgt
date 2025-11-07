@@ -413,17 +413,22 @@ export const InventoryManagement = () => {
                     key={transaction.id}
                     className="flex items-center justify-between p-4 border border-border rounded-lg"
                   >
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-semibold">{transaction.product_name}</h4>
                       <p className="text-sm text-muted-foreground">
                         {transaction.transaction_type}
                         {transaction.supplier && ` • ${transaction.supplier}`}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      {transaction.notes && (
+                        <p className="text-sm text-muted-foreground mt-1 italic">
+                          {transaction.notes}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
                         {new Date(transaction.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right ml-4">
                       <p className="text-xl font-bold text-green-600">+{transaction.quantity}</p>
                     </div>
                   </div>
@@ -519,17 +524,22 @@ export const InventoryManagement = () => {
                     key={transaction.id}
                     className="flex items-center justify-between p-4 border border-border rounded-lg"
                   >
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-semibold">{transaction.product_name}</h4>
                       <p className="text-sm text-muted-foreground">
                         {transaction.transaction_type}
                         {transaction.destination && ` • ${transaction.destination}`}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      {transaction.notes && (
+                        <p className="text-sm text-muted-foreground mt-1 italic">
+                          {transaction.notes}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
                         {new Date(transaction.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right ml-4">
                       <p className="text-xl font-bold text-red-600">-{transaction.quantity}</p>
                     </div>
                   </div>
