@@ -148,7 +148,6 @@ export const UserManagement = () => {
     
     const matchesAccount = 
       selectedAccount === "all" || 
-      selectedAccount === "no-account" && !user.account_id ||
       user.account_id === selectedAccount;
     
     return matchesSearch && matchesAccount;
@@ -193,7 +192,6 @@ export const UserManagement = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Accounts</SelectItem>
-                  <SelectItem value="no-account">No Account</SelectItem>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.account_name}
