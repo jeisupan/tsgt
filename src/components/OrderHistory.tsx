@@ -144,10 +144,10 @@ export const OrderHistory = () => {
     if (!editingOrder) return;
 
     try {
-      // Calculate new totals with 12% tax (matching the rest of the application)
-      const subtotal = editedItems.reduce((sum, item) => sum + Number(item.line_total), 0);
-      const tax = subtotal * 0.12;
-      const total = subtotal + tax;
+      // Calculate new totals - VAT is already included in the line totals (reverse calculation)
+      const total = editedItems.reduce((sum, item) => sum + Number(item.line_total), 0);
+      const subtotal = total / 1.12; // Price without VAT (VAT is already included)
+      const tax = total - subtotal; // 12% VAT amount
 
       // Update order totals
       const { error: orderError } = await supabase
@@ -326,21 +326,27 @@ export const OrderHistory = () => {
             <Card className="p-4 bg-muted/50">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Subtotal:</span>
+                  <span>Subtotal (excl. VAT):</span>
                   <span className="font-semibold">
-                    ₱{editedItems.reduce((sum, item) => sum + Number(item.line_total), 0).toFixed(2)}
+                    ₱{(() => {
+                      const total = editedItems.reduce((sum, item) => sum + Number(item.line_total), 0);
+                      return (total / 1.12).toFixed(2);
+                    })()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tax (12%):</span>
+                  <span>VAT (12% included):</span>
                   <span className="font-semibold">
-                    ₱{(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 0.12).toFixed(2)}
+                    ₱{(() => {
+                      const total = editedItems.reduce((sum, item) => sum + Number(item.line_total), 0);
+                      return (total - total / 1.12).toFixed(2);
+                    })()}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Total:</span>
                   <span className="text-primary">
-                    ₱{(editedItems.reduce((sum, item) => sum + Number(item.line_total), 0) * 1.12).toFixed(2)}
+                    ₱{editedItems.reduce((sum, item) => sum + Number(item.line_total), 0).toFixed(2)}
                   </span>
                 </div>
               </div>
