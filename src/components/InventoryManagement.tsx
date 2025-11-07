@@ -60,7 +60,7 @@ export const InventoryManagement = () => {
   const [products, setProducts] = useState<ProductFromDB[]>([]);
   const [activeTab, setActiveTab] = useState("inventory");
 
-  const canEditInventory = canEdit("inventory") && (role === "inventory" || role === "admin" || role === "super_admin");
+  const canAdjustStock = role === "inventory" || role === "admin" || role === "super_admin";
 
   // Inbound form state
   const [inboundProductId, setInboundProductId] = useState("");
@@ -335,7 +335,7 @@ export const InventoryManagement = () => {
             <form onSubmit={handleInboundSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="inbound-product">Product</Label>
-                <Select value={inboundProductId} onValueChange={setInboundProductId} disabled={!canEditInventory}>
+                <Select value={inboundProductId} onValueChange={setInboundProductId} disabled={!canAdjustStock}>
                   <SelectTrigger id="inbound-product">
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
@@ -358,13 +358,13 @@ export const InventoryManagement = () => {
                   value={inboundQuantity}
                   onChange={(e) => setInboundQuantity(e.target.value)}
                   placeholder="Enter quantity"
-                  disabled={!canEditInventory}
+                  disabled={!canAdjustStock}
                 />
               </div>
 
               <div>
                 <Label htmlFor="inbound-type">Transaction Type</Label>
-                <Select value={inboundType} onValueChange={setInboundType}>
+                <Select value={inboundType} onValueChange={setInboundType} disabled={!canAdjustStock}>
                   <SelectTrigger id="inbound-type">
                     <SelectValue />
                   </SelectTrigger>
@@ -383,6 +383,7 @@ export const InventoryManagement = () => {
                   value={inboundSupplier}
                   onChange={(e) => setInboundSupplier(e.target.value)}
                   placeholder="Enter supplier name"
+                  disabled={!canAdjustStock}
                 />
               </div>
 
@@ -393,10 +394,11 @@ export const InventoryManagement = () => {
                   value={inboundNotes}
                   onChange={(e) => setInboundNotes(e.target.value)}
                   placeholder="Add any notes"
+                  disabled={!canAdjustStock}
                 />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={!canAdjustStock}>
                 Add Stock
               </Button>
             </form>
@@ -447,7 +449,7 @@ export const InventoryManagement = () => {
             <form onSubmit={handleOutboundSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="outbound-product">Product</Label>
-                <Select value={outboundProductId} onValueChange={setOutboundProductId}>
+                <Select value={outboundProductId} onValueChange={setOutboundProductId} disabled={!canAdjustStock}>
                   <SelectTrigger id="outbound-product">
                     <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
@@ -470,12 +472,13 @@ export const InventoryManagement = () => {
                   value={outboundQuantity}
                   onChange={(e) => setOutboundQuantity(e.target.value)}
                   placeholder="Enter quantity"
+                  disabled={!canAdjustStock}
                 />
               </div>
 
               <div>
                 <Label htmlFor="outbound-type">Transaction Type</Label>
-                <Select value={outboundType} onValueChange={setOutboundType}>
+                <Select value={outboundType} onValueChange={setOutboundType} disabled={!canAdjustStock}>
                   <SelectTrigger id="outbound-type">
                     <SelectValue />
                   </SelectTrigger>
@@ -494,6 +497,7 @@ export const InventoryManagement = () => {
                   value={outboundDestination}
                   onChange={(e) => setOutboundDestination(e.target.value)}
                   placeholder="Branch/warehouse name"
+                  disabled={!canAdjustStock}
                 />
               </div>
 
@@ -504,10 +508,11 @@ export const InventoryManagement = () => {
                   value={outboundNotes}
                   onChange={(e) => setOutboundNotes(e.target.value)}
                   placeholder="Add any notes"
+                  disabled={!canAdjustStock}
                 />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={!canAdjustStock}>
                 Process Outbound
               </Button>
             </form>
