@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
-import { maskEmail, maskPhone, maskAddress } from "@/lib/utils";
+import { maskEmail, maskPhone, maskAddress, maskTin } from "@/lib/utils";
 
 interface Supplier {
   id: string;
@@ -109,7 +109,7 @@ export const SupplierManagement = () => {
               {suppliers.map((supplier) => (
                 <TableRow key={supplier.id}>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
-                  <TableCell>{supplier.tin_number || "-"}</TableCell>
+                  <TableCell>{maskTin(supplier.tin_number)}</TableCell>
                   <TableCell>{maskEmail(supplier.email)}</TableCell>
                   <TableCell>{maskPhone(supplier.phone)}</TableCell>
                   <TableCell>{maskAddress(supplier.address)}</TableCell>

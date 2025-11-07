@@ -42,3 +42,15 @@ export function maskAddress(address: string | null): string {
   
   return `***${visible}`;
 }
+
+export function maskTin(tin: string | null): string {
+  if (!tin) return "-";
+  
+  const digits = tin.replace(/\D/g, "");
+  if (digits.length <= 4) return tin;
+  
+  const visibleEnd = Math.min(4, digits.length);
+  const end = tin.slice(-visibleEnd);
+  
+  return `***${end}`;
+}
