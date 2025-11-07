@@ -32,7 +32,7 @@ export const SupplierManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
-  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance" || role === "inventory";
+  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
 
   const fetchSuppliers = async () => {
     setIsLoading(true);
