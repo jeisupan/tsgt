@@ -550,7 +550,7 @@ const Index = () => {
         ) : activeMenu === "pos" && hasAccess(["sales", "admin", "super_admin"]) ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={selectedCategory}
@@ -558,9 +558,9 @@ const Index = () => {
                 />
                 {hasAccess(["sales", "admin", "super_admin"]) && (
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => setIsProductsModalOpen(true)}
-                    className="gap-2"
+                    className="gap-2 shrink-0"
                   >
                     <ShoppingBag className="h-4 w-4" />
                     View Items
