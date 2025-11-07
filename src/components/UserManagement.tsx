@@ -79,11 +79,14 @@ export const UserManagement = () => {
         .from("accounts")
         .select("id, account_name");
 
-      if (!accountsError && accounts) {
+      if (accountsError) {
+        console.error("Error fetching accounts:", accountsError);
+      } else if (accounts) {
         accountsMap = accounts.reduce((acc, account) => {
           acc[account.id] = account.account_name;
           return acc;
         }, {} as Record<string, string>);
+        console.log("Accounts map:", accountsMap);
       }
     }
 
@@ -99,10 +102,16 @@ export const UserManagement = () => {
       .filter(profile => profile.id !== currentUser?.id) // Exclude current user
       .map((profile) => {
         const roles = userRoles?.filter((r) => r.user_id === profile.id).map((r) => r.role) || [];
+        const accountName = profile.account_id && accountsMap[profile.account_id] 
+          ? accountsMap[profile.account_id] 
+          : null;
+        
+        console.log(`Profile ${profile.email}: account_id=${profile.account_id}, accountName=${accountName}`);
+        
         return {
           ...profile,
           roles,
-          account_name: profile.account_id ? accountsMap[profile.account_id] : null,
+          account_name: accountName,
         };
       });
 
