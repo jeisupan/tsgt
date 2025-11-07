@@ -89,11 +89,20 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
         const updateData: any = { name: formData.name, account_id: accountId };
         
         if (showMaskedTooltip) {
-          // Only include sensitive fields if they were edited
-          if (editedFields.has('tin_number')) updateData.tin_number = formData.tin_number;
-          if (editedFields.has('email')) updateData.email = formData.email;
-          if (editedFields.has('phone')) updateData.phone = formData.phone;
-          if (editedFields.has('address')) updateData.address = formData.address;
+          // Only include sensitive fields if they were edited and have a value
+          // If edited but empty, keep the original value (don't update)
+          if (editedFields.has('tin_number') && formData.tin_number.trim()) {
+            updateData.tin_number = formData.tin_number;
+          }
+          if (editedFields.has('email') && formData.email.trim()) {
+            updateData.email = formData.email;
+          }
+          if (editedFields.has('phone') && formData.phone.trim()) {
+            updateData.phone = formData.phone;
+          }
+          if (editedFields.has('address') && formData.address.trim()) {
+            updateData.address = formData.address;
+          }
         } else {
           // Admin/finance/super_admin can update all fields
           Object.assign(updateData, formData);
