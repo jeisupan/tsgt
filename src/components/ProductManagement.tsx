@@ -74,7 +74,8 @@ export const ProductManagement = () => {
   useEffect(() => {
     fetchProducts();
 
-    const channel = supabase
+    // Subscribe to product changes
+    const productsChannel = supabase
       .channel('products-changes')
       .on(
         'postgres_changes',
@@ -89,8 +90,25 @@ export const ProductManagement = () => {
       )
       .subscribe();
 
+    // Subscribe to inventory changes
+    const inventoryChannel = supabase
+      .channel('inventory-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory'
+        },
+        () => {
+          fetchProducts();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(inventoryChannel);
     };
   }, []);
 
