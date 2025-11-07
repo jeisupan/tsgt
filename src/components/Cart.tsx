@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { ShoppingCart, Trash2, Plus, Minus, UserPlus } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, UserPlus, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { CustomerDialog } from "@/components/CustomerDialog";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface CartItem {
   id: string;
@@ -33,6 +35,7 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState<string>("");
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const subtotal = total / 1.12; // Price without VAT (VAT is already included in price)
@@ -142,18 +145,49 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
               Customer *
             </label>
             <div className="flex gap-2">
-              <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="flex-1 justify-between"
+                  >
+                    {selectedCustomerId
+                      ? customers.find((customer) => customer.id === selectedCustomerId)?.name
+                      : "Search customer..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search customer by name..." />
+                    <CommandList>
+                      <CommandEmpty>No customer found.</CommandEmpty>
+                      <CommandGroup>
+                        {customers.map((customer) => (
+                          <CommandItem
+                            key={customer.id}
+                            value={customer.name}
+                            onSelect={() => {
+                              setSelectedCustomerId(customer.id);
+                              setOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedCustomerId === customer.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {customer.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <Button
                 size="icon"
                 variant="outline"
