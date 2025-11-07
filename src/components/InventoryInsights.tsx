@@ -30,7 +30,7 @@ const InventoryInsights = () => {
   const [loading, setLoading] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string>("");
   const { toast } = useToast();
-  const { accountId } = useUserRole();
+  const { accountId, role } = useUserRole();
 
   const reportTypes = [
     { value: "general-insights", label: "General Insights", icon: Lightbulb },
@@ -40,7 +40,7 @@ const InventoryInsights = () => {
   ];
 
   const generateInsights = async () => {
-    if (!accountId) {
+    if (!accountId && role !== "super_admin") {
       toast({
         title: "Error",
         description: "Account information not available",
@@ -54,7 +54,11 @@ const InventoryInsights = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("inventory-insights", {
-        body: { reportType, accountId },
+        body: { 
+          reportType, 
+          accountId,
+          isSuperAdmin: role === "super_admin"
+        },
       });
 
       if (error) {
@@ -102,6 +106,7 @@ const InventoryInsights = () => {
         <h2 className="text-3xl font-bold tracking-tight">AI Inventory Insights</h2>
         <p className="text-muted-foreground mt-2">
           Generate automated reports and insights powered by AI
+          {role === "super_admin" && <span className="ml-2 text-primary font-semibold">(Analyzing all accounts)</span>}
         </p>
       </div>
 

@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { reportType, accountId } = await req.json();
+    const { reportType, accountId, isSuperAdmin } = await req.json();
     
-    console.log('Generating inventory insights:', { reportType, accountId });
+    console.log('Generating inventory insights:', { reportType, accountId, isSuperAdmin });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -27,11 +27,24 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // Build queries conditionally based on super_admin status
+    let inventoryQuery = supabase.from('inventory').select('*');
+    let productsQuery = supabase.from('products').select('*');
+    let ordersQuery = supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false });
+
+    // Only filter by account_id if not super_admin
+    if (!isSuperAdmin && accountId) {
+      inventoryQuery = inventoryQuery.eq('account_id', accountId);
+      productsQuery = productsQuery.eq('account_id', accountId);
+      ordersQuery = ordersQuery.eq('account_id', accountId);
+    }
+
     // Fetch inventory data
-    const { data: inventoryData, error: inventoryError } = await supabase
-      .from('inventory')
-      .select('*')
-      .eq('account_id', accountId);
+    const { data: inventoryData, error: inventoryError } = await inventoryQuery;
 
     if (inventoryError) {
       console.error('Error fetching inventory:', inventoryError);
@@ -39,10 +52,7 @@ serve(async (req) => {
     }
 
     // Fetch products data
-    const { data: productsData, error: productsError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('account_id', accountId);
+    const { data: productsData, error: productsError } = await productsQuery;
 
     if (productsError) {
       console.error('Error fetching products:', productsError);
@@ -61,12 +71,7 @@ serve(async (req) => {
     }) || [];
 
     // Fetch recent orders for sales insights
-    const { data: ordersData, error: ordersError } = await supabase
-      .from('orders')
-      .select('*, order_items(*)')
-      .eq('account_id', accountId)
-      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('created_at', { ascending: false });
+    const { data: ordersData, error: ordersError } = await ordersQuery;
 
     if (ordersError) {
       console.error('Error fetching orders:', ordersError);
@@ -78,50 +83,50 @@ serve(async (req) => {
 
     switch (reportType) {
       case 'stock-levels':
-        systemPrompt = `You are an inventory management expert. Analyze the current stock levels and provide insights on:
+        systemPrompt = `You are an inventory management expert. Analyze the current stock levels${isSuperAdmin ? ' across all accounts' : ''} and provide insights on:
 - Items running low on stock that need reordering
 - Overstocked items
-- Stock distribution across categories
+- Stock distribution across categories${isSuperAdmin ? ' and accounts' : ''}
 - Recommendations for optimal stock levels
 
 Format your response in clear sections with bullet points and actionable recommendations.`;
-        dataContext = `Current Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}`;
+        dataContext = `Current Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}`;
         break;
 
       case 'sales-trends':
-        systemPrompt = `You are a sales analytics expert. Analyze the sales data and provide insights on:
-- Best-selling products
+        systemPrompt = `You are a sales analytics expert. Analyze the sales data${isSuperAdmin ? ' across all accounts' : ''} and provide insights on:
+- Best-selling products${isSuperAdmin ? ' across all accounts' : ''}
 - Sales trends over the past 30 days
-- Revenue patterns
+- Revenue patterns${isSuperAdmin ? ' by account' : ''}
 - Product performance by category
 - Recommendations for inventory adjustments based on sales
 
 Format your response in clear sections with bullet points and actionable insights.`;
-        dataContext = `Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(ordersData, null, 2)}`;
         break;
 
       case 'reorder-suggestions':
-        systemPrompt = `You are a supply chain optimization expert. Analyze inventory levels and sales patterns to provide:
+        systemPrompt = `You are a supply chain optimization expert. Analyze inventory levels and sales patterns${isSuperAdmin ? ' across all accounts' : ''} to provide:
 - Specific products that should be reordered now
 - Suggested reorder quantities based on sales velocity
-- Priority levels for each reorder
+- Priority levels for each reorder${isSuperAdmin ? ' organized by account' : ''}
 - Estimated costs and timing considerations
 
 Format your response as a prioritized list with specific actionable recommendations.`;
-        dataContext = `Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(ordersData, null, 2)}`;
         break;
 
       case 'general-insights':
       default:
-        systemPrompt = `You are a business intelligence expert specializing in inventory management. Provide a comprehensive analysis covering:
-- Overall inventory health
+        systemPrompt = `You are a business intelligence expert specializing in inventory management. Provide a comprehensive analysis${isSuperAdmin ? ' across all accounts' : ''} covering:
+- Overall inventory health${isSuperAdmin ? ' by account' : ''}
 - Key metrics and KPIs
 - Top opportunities for improvement
 - Risk factors or concerns
-- Strategic recommendations
+- Strategic recommendations${isSuperAdmin ? ' for each account' : ''}
 
 Format your response in clear, actionable sections.`;
-        dataContext = `Inventory:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days):\n${JSON.stringify(ordersData, null, 2)}`;
+        dataContext = `Inventory${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(enrichedInventory, null, 2)}\n\nRecent Orders (Last 30 days)${isSuperAdmin ? ' (All Accounts)' : ''}:\n${JSON.stringify(ordersData, null, 2)}`;
     }
 
     // Call Lovable AI
