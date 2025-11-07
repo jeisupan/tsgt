@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -45,9 +47,9 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Inventory can edit suppliers but sensitive fields are masked when editing existing
+  // Inventory can edit suppliers but sensitive fields are masked initially when editing existing
   const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance" || (!editingSupplier && role === "inventory");
-  const isSensitiveFieldReadOnly = editingSupplier && role === "inventory";
+  const showMaskedTooltip = editingSupplier && role === "inventory";
 
   // Update form when editing supplier changes
   useEffect(() => {
@@ -80,14 +82,9 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
     try {
       if (editingSupplier) {
         // Update existing supplier
-        // For inventory role, only update the name field
-        const updateData = isSensitiveFieldReadOnly
-          ? { name: formData.name, account_id: accountId }
-          : { ...formData, account_id: accountId };
-          
         const { error } = await supabase
           .from("suppliers")
-          .update(updateData)
+          .update({ ...formData, account_id: accountId })
           .eq("id", editingSupplier.id);
 
         if (error) throw error;
@@ -117,6 +114,12 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
           <DialogTitle>{editingSupplier ? "Edit Supplier" : "Add New Supplier"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {showMaskedTooltip && (
+            <div className="flex items-start gap-2 p-3 bg-muted rounded-md text-sm text-muted-foreground">
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p>Sensitive fields show masked values for privacy. You can edit them by typing new values.</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input
@@ -127,48 +130,94 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="tin_number">TIN Number</Label>
-            <Input
-              id="tin_number"
-              value={canViewSensitiveData || !editingSupplier ? formData.tin_number : maskTin(formData.tin_number)}
-              onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
-              placeholder="Enter TIN number"
-              readOnly={isSensitiveFieldReadOnly}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={canViewSensitiveData || !editingSupplier ? formData.email : maskEmail(formData.email)}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Enter email address"
-              readOnly={isSensitiveFieldReadOnly}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              value={canViewSensitiveData || !editingSupplier ? formData.phone : maskPhone(formData.phone)}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="Enter phone number"
-              readOnly={isSensitiveFieldReadOnly}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Textarea
-              id="address"
-              value={canViewSensitiveData || !editingSupplier ? formData.address : maskAddress(formData.address)}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="Enter address"
-              rows={3}
-              readOnly={isSensitiveFieldReadOnly}
-            />
-          </div>
+          <TooltipProvider>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="tin_number">TIN Number</Label>
+                {showMaskedTooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Initially masked for privacy. Clear and type to update.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <Input
+                id="tin_number"
+                value={canViewSensitiveData || !editingSupplier ? formData.tin_number : maskTin(formData.tin_number)}
+                onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
+                placeholder="Enter TIN number"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="email">Email</Label>
+                {showMaskedTooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Initially masked for privacy. Clear and type to update.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <Input
+                id="email"
+                type="email"
+                value={canViewSensitiveData || !editingSupplier ? formData.email : maskEmail(formData.email)}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="Enter email address"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="phone">Phone</Label>
+                {showMaskedTooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Initially masked for privacy. Clear and type to update.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <Input
+                id="phone"
+                value={canViewSensitiveData || !editingSupplier ? formData.phone : maskPhone(formData.phone)}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="address">Address</Label>
+                {showMaskedTooltip && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Initially masked for privacy. Clear and type to update.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <Textarea
+                id="address"
+                value={canViewSensitiveData || !editingSupplier ? formData.address : maskAddress(formData.address)}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                placeholder="Enter address"
+                rows={3}
+              />
+            </div>
+          </TooltipProvider>
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
