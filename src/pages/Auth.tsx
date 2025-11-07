@@ -271,11 +271,11 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex justify-center mb-4">
-            <div className="p-1 rounded-lg bg-white shadow-sm">
+            <div className="p-2 rounded-lg bg-white shadow-sm w-full">
               <img 
                 src={logoUrl} 
                 alt="Business Logo" 
-                className="h-24 w-24 object-contain" 
+                className="h-32 w-full object-contain" 
               />
             </div>
           </div>
