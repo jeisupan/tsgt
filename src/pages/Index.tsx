@@ -11,7 +11,8 @@ import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
 import { ProductManagement } from "@/components/ProductManagement";
 import { ProductDialog } from "@/components/ProductDialog";
-import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy } from "lucide-react";
+import InventoryInsights from "@/components/InventoryInsights";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy, Lightbulb } from "lucide-react";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -617,6 +618,17 @@ const Index = () => {
                 </Button>
               )}
               
+              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && (
+                <Button
+                  variant={activeMenu === "insights" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("insights")}
+                  className="gap-2"
+                >
+                  <Lightbulb className="h-5 w-5" />
+                  AI Insights
+                </Button>
+              )}
+              
               {hasAccess(["super_admin", "admin"]) && (
                 <Button
                   variant={activeMenu === "users" ? "default" : "outline"}
@@ -658,6 +670,8 @@ const Index = () => {
           <SupplierManagement />
         ) : activeMenu === "expenses" && role !== "super_admin" ? (
           <OperationsExpense />
+        ) : activeMenu === "insights" && role !== "super_admin" ? (
+          <InventoryInsights />
         ) : activeMenu === "pos" && hasAccess(["sales", "admin"]) && role !== "super_admin" ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
