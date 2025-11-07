@@ -165,14 +165,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               </div>
               <Input
                 id="tin_number"
-                value={canViewSensitiveData || !editingSupplier ? formData.tin_number : maskTin(formData.tin_number)}
+                value={canViewSensitiveData || !editingSupplier || editedFields.has('tin_number') ? formData.tin_number : maskTin(formData.tin_number)}
                 onChange={(e) => {
                   setFormData({ ...formData, tin_number: e.target.value });
                   setEditedFields(new Set(editedFields).add('tin_number'));
                 }}
                 onFocus={(e) => {
                   if (showMaskedTooltip && !editedFields.has('tin_number')) {
-                    e.target.value = '';
+                    setFormData({ ...formData, tin_number: '' });
+                    setEditedFields(new Set(editedFields).add('tin_number'));
                   }
                 }}
                 placeholder="Enter TIN number"
@@ -195,14 +196,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               <Input
                 id="email"
                 type="email"
-                value={canViewSensitiveData || !editingSupplier ? formData.email : maskEmail(formData.email)}
+                value={canViewSensitiveData || !editingSupplier || editedFields.has('email') ? formData.email : maskEmail(formData.email)}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
                   setEditedFields(new Set(editedFields).add('email'));
                 }}
                 onFocus={(e) => {
                   if (showMaskedTooltip && !editedFields.has('email')) {
-                    e.target.value = '';
+                    setFormData({ ...formData, email: '' });
+                    setEditedFields(new Set(editedFields).add('email'));
                   }
                 }}
                 placeholder="Enter email address"
@@ -224,14 +226,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               </div>
               <Input
                 id="phone"
-                value={canViewSensitiveData || !editingSupplier ? formData.phone : maskPhone(formData.phone)}
+                value={canViewSensitiveData || !editingSupplier || editedFields.has('phone') ? formData.phone : maskPhone(formData.phone)}
                 onChange={(e) => {
                   setFormData({ ...formData, phone: e.target.value });
                   setEditedFields(new Set(editedFields).add('phone'));
                 }}
                 onFocus={(e) => {
                   if (showMaskedTooltip && !editedFields.has('phone')) {
-                    e.target.value = '';
+                    setFormData({ ...formData, phone: '' });
+                    setEditedFields(new Set(editedFields).add('phone'));
                   }
                 }}
                 placeholder="Enter phone number"
@@ -253,14 +256,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               </div>
               <Textarea
                 id="address"
-                value={canViewSensitiveData || !editingSupplier ? formData.address : maskAddress(formData.address)}
+                value={canViewSensitiveData || !editingSupplier || editedFields.has('address') ? formData.address : maskAddress(formData.address)}
                 onChange={(e) => {
                   setFormData({ ...formData, address: e.target.value });
                   setEditedFields(new Set(editedFields).add('address'));
                 }}
                 onFocus={(e) => {
                   if (showMaskedTooltip && !editedFields.has('address')) {
-                    e.target.value = '';
+                    setFormData({ ...formData, address: '' });
+                    setEditedFields(new Set(editedFields).add('address'));
                   }
                 }}
                 placeholder="Enter address"
