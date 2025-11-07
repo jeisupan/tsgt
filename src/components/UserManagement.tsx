@@ -179,7 +179,7 @@ export const UserManagement = () => {
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             {/* Account Filter - Left side */}
-            {isSuperAdmin && accounts.length > 0 && (
+            {isSuperAdmin && (
               <Popover open={accountDropdownOpen} onOpenChange={setAccountDropdownOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -187,17 +187,22 @@ export const UserManagement = () => {
                     role="combobox"
                     aria-expanded={accountDropdownOpen}
                     className="w-full sm:w-[250px] justify-between"
+                    disabled={accounts.length === 0}
                   >
-                    {selectedAccount === "all"
-                      ? "All Accounts"
-                      : accounts.find((account) => account.id === selectedAccount)?.account_name || "Select account..."}
+                    {accounts.length === 0 ? (
+                      "Loading accounts..."
+                    ) : selectedAccount === "all" ? (
+                      "All Accounts"
+                    ) : (
+                      accounts.find((account) => account.id === selectedAccount)?.account_name || "Select account..."
+                    )}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[250px] p-0 bg-background" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search accounts..." />
-                    <CommandList>
+                <PopoverContent className="w-[250px] p-0 bg-popover border border-border z-50" align="start">
+                  <Command className="bg-popover">
+                    <CommandInput placeholder="Search accounts..." className="h-9 bg-transparent" />
+                    <CommandList className="max-h-[300px]">
                       <CommandEmpty>No account found.</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
