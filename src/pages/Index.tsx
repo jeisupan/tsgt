@@ -10,6 +10,7 @@ import { CustomerManagement } from "@/components/CustomerManagement";
 import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
 import { ProductManagement } from "@/components/ProductManagement";
+import { ProductDialog } from "@/components/ProductDialog";
 import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag } from "lucide-react";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
@@ -107,7 +108,8 @@ const Index = () => {
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
   
   // Auto logout on inactivity (15 min) and tab/browser close
   useAutoLogout();
@@ -317,8 +319,15 @@ const Index = () => {
   };
 
   const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setIsProductsModalOpen(true);
+    // Convert Product to match ProductDialog's expected format
+    setEditingProduct({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      image_url: product.image
+    });
+    setIsProductDialogOpen(true);
   };
 
   const handleLogout = async () => {
@@ -614,6 +623,17 @@ const Index = () => {
           <ProductManagement />
         </DialogContent>
       </Dialog>
+
+      <ProductDialog
+        open={isProductDialogOpen}
+        onOpenChange={setIsProductDialogOpen}
+        product={editingProduct}
+        onSuccess={() => {
+          fetchProducts();
+          setIsProductDialogOpen(false);
+          setEditingProduct(null);
+        }}
+      />
     </div>
   );
 };
