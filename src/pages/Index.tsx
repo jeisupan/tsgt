@@ -601,10 +601,10 @@ const Index = () => {
                   <Button
                     variant="secondary"
                     onClick={() => setIsProductsModalOpen(true)}
-                    className="gap-2 shrink-0"
+                    className={`gap-2 shrink-0 ${products.length === 0 ? 'animate-pulse' : ''}`}
                   >
                     <ShoppingBag className="h-4 w-4" />
-                    Manage Items
+                    {products.length === 0 ? 'Add Items' : 'Manage Items'}
                   </Button>
                 )}
               </div>
