@@ -207,6 +207,32 @@ export const InventoryManagement = () => {
     setOutboundDateRange(undefined);
   };
 
+  const isInboundExportEnabled = () => {
+    if (inboundFilterMode === "single") {
+      return !!inboundSingleDate;
+    }
+    if (inboundFilterMode === "range" && inboundDateRange?.from) {
+      const from = inboundDateRange.from;
+      const to = inboundDateRange.to || inboundDateRange.from;
+      const daysDiff = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 30;
+    }
+    return false;
+  };
+
+  const isOutboundExportEnabled = () => {
+    if (outboundFilterMode === "single") {
+      return !!outboundSingleDate;
+    }
+    if (outboundFilterMode === "range" && outboundDateRange?.from) {
+      const from = outboundDateRange.from;
+      const to = outboundDateRange.to || outboundDateRange.from;
+      const daysDiff = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 30;
+    }
+    return false;
+  };
+
   // Excel export functions
   const exportInboundToExcel = () => {
     const dataToExport = filteredInboundHistory.map(transaction => ({
@@ -603,7 +629,8 @@ export const InventoryManagement = () => {
                   size="sm"
                   onClick={exportInboundToExcel}
                   className="gap-2"
-                  disabled={filteredInboundHistory.length === 0}
+                  disabled={!isInboundExportEnabled() || filteredInboundHistory.length === 0}
+                  title={!isInboundExportEnabled() ? "Please select a date or date range (max 30 days)" : ""}
                 >
                   <Download className="h-4 w-4" />
                   Export to Excel
@@ -832,7 +859,8 @@ export const InventoryManagement = () => {
                   size="sm"
                   onClick={exportOutboundToExcel}
                   className="gap-2"
-                  disabled={filteredOutboundHistory.length === 0}
+                  disabled={!isOutboundExportEnabled() || filteredOutboundHistory.length === 0}
+                  title={!isOutboundExportEnabled() ? "Please select a date or date range (max 30 days)" : ""}
                 >
                   <Download className="h-4 w-4" />
                   Export to Excel

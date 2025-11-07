@@ -78,6 +78,19 @@ export const OrderHistory = () => {
     setDateRange(undefined);
   };
 
+  const isExportEnabled = () => {
+    if (filterMode === "single") {
+      return !!singleDate;
+    }
+    if (filterMode === "range" && dateRange?.from) {
+      const from = dateRange.from;
+      const to = dateRange.to || dateRange.from;
+      const daysDiff = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 30;
+    }
+    return false;
+  };
+
   const exportToExcel = () => {
     const dataToExport = filteredOrders.flatMap(order => 
       order.order_items.map(item => ({
@@ -507,7 +520,8 @@ export const OrderHistory = () => {
             size="sm"
             onClick={exportToExcel}
             className="gap-2"
-            disabled={filteredOrders.length === 0}
+            disabled={!isExportEnabled() || filteredOrders.length === 0}
+            title={!isExportEnabled() ? "Please select a date or date range (max 30 days)" : ""}
           >
             <Download className="h-4 w-4" />
             Export to Excel
