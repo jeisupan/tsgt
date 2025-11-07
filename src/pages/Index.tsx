@@ -591,35 +591,53 @@ const Index = () => {
         ) : activeMenu === "pos" && hasAccess(["sales", "admin"]) && role !== "super_admin" ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
-              <div className="flex items-center justify-between gap-4">
-                <CategoryFilter
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={setSelectedCategory}
-                />
-                {hasAccess(["sales", "admin"]) && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setIsProductsModalOpen(true)}
-                    className={`gap-2 shrink-0 ${products.length === 0 ? 'animate-pulse' : ''}`}
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    {products.length === 0 ? 'Add Items' : 'Manage Items'}
-                  </Button>
-                )}
-              </div>
+              {products.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between gap-4">
+                    <CategoryFilter
+                      categories={categories}
+                      selectedCategory={selectedCategory}
+                      onSelectCategory={setSelectedCategory}
+                    />
+                    {hasAccess(["sales", "admin"]) && (
+                      <Button
+                        variant="secondary"
+                        onClick={() => setIsProductsModalOpen(true)}
+                        className="gap-2 shrink-0"
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                        Manage Items
+                      </Button>
+                    )}
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                    availableStock={inventory[product.id] || 0}
-                    onEdit={hasAccess(["sales", "admin"]) ? handleEditProduct : undefined}
-                  />
-                ))}
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        availableStock={inventory[product.id] || 0}
+                        onEdit={hasAccess(["sales", "admin"]) ? handleEditProduct : undefined}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  {hasAccess(["sales", "admin"]) && (
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      onClick={() => setIsProductsModalOpen(true)}
+                      className="gap-2 animate-pulse"
+                    >
+                      <ShoppingBag className="h-5 w-5" />
+                      Add Items
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="lg:sticky lg:top-8 h-fit">
