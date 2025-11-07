@@ -109,14 +109,25 @@ export const UserManagement = () => {
                 <TableHead>Email</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Roles</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.email}</TableCell>
-                  <TableCell>{user.full_name || "-"}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleManageRoles(user)}
+                        className="h-6 w-6"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <span>{user.full_name || "-"}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {user.roles.length > 0 ? (
@@ -129,17 +140,6 @@ export const UserManagement = () => {
                         <Badge variant="outline">No Roles</Badge>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleManageRoles(user)}
-                      className="gap-2"
-                    >
-                      <Settings className="h-4 w-4" />
-                      Manage Roles
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
