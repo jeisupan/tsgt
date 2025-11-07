@@ -9,7 +9,38 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 // Simple markdown-to-HTML converter for basic formatting
 const renderMarkdown = (text: string) => {
-  return text
+  // First, handle tables
+  let result = text.replace(/^\|(.+)\|\s*$/gim, (match, content) => {
+    const cells = content.split('|').map((cell: string) => cell.trim());
+    const isHeaderSeparator = cells.every((cell: string) => /^-+$/.test(cell));
+    
+    if (isHeaderSeparator) {
+      return ''; // Skip separator rows
+    }
+    
+    // Check if this is likely a header row (next line is separator)
+    const lines = text.split('\n');
+    const currentIndex = lines.findIndex((line: string) => line.includes(match));
+    const nextLine = lines[currentIndex + 1];
+    const isHeader = nextLine && /^\|[\s-|]+\|$/.test(nextLine);
+    
+    if (isHeader) {
+      return '<tr>' + cells.map((cell: string) => 
+        `<th class="border border-border px-4 py-2 bg-muted font-semibold">${cell}</th>`
+      ).join('') + '</tr>';
+    } else {
+      return '<tr>' + cells.map((cell: string) => 
+        `<td class="border border-border px-4 py-2">${cell}</td>`
+      ).join('') + '</tr>';
+    }
+  });
+  
+  // Wrap table rows in table element
+  result = result.replace(/(<tr>[\s\S]+?<\/tr>)/g, 
+    '<table class="min-w-full border-collapse border border-border my-4">$1</table>'
+  );
+  
+  return result
     // Headers
     .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-5 mb-3">$1</h2>')
