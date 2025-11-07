@@ -58,6 +58,9 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     
+    // Get current user
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("*");
@@ -92,14 +95,16 @@ export const UserManagement = () => {
       console.error("Error fetching roles:", rolesError);
     }
 
-    const usersWithRoles = profiles.map((profile) => {
-      const roles = userRoles?.filter((r) => r.user_id === profile.id).map((r) => r.role) || [];
-      return {
-        ...profile,
-        roles,
-        account_name: profile.account_id ? accountsMap[profile.account_id] : null,
-      };
-    });
+    const usersWithRoles = profiles
+      .filter(profile => profile.id !== currentUser?.id) // Exclude current user
+      .map((profile) => {
+        const roles = userRoles?.filter((r) => r.user_id === profile.id).map((r) => r.role) || [];
+        return {
+          ...profile,
+          roles,
+          account_name: profile.account_id ? accountsMap[profile.account_id] : null,
+        };
+      });
 
     setUsers(usersWithRoles);
     setLoading(false);
