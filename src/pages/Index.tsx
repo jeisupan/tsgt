@@ -107,6 +107,7 @@ const Index = () => {
   const [inventory, setInventory] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [isProductsModalOpen, setIsProductsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
   // Auto logout on inactivity (15 min) and tab/browser close
   useAutoLogout();
@@ -313,6 +314,11 @@ const Index = () => {
     if (item) {
       toast.info(`Removed ${item.name} from cart`);
     }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsProductsModalOpen(true);
   };
 
   const handleLogout = async () => {
@@ -575,6 +581,7 @@ const Index = () => {
                     product={product}
                     onAddToCart={handleAddToCart}
                     availableStock={inventory[product.id] || 0}
+                    onEdit={hasAccess(["sales", "admin", "super_admin"]) ? handleEditProduct : undefined}
                   />
                 ))}
               </div>

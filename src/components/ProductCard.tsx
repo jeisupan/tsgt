@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -15,9 +15,10 @@ interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   availableStock?: number;
+  onEdit?: (product: Product) => void;
 }
 
-export const ProductCard = ({ product, onAddToCart, availableStock = 0 }: ProductCardProps) => {
+export const ProductCard = ({ product, onAddToCart, availableStock = 0, onEdit }: ProductCardProps) => {
   const isOutOfStock = availableStock <= 0;
   
   return (
@@ -32,6 +33,18 @@ export const ProductCard = ({ product, onAddToCart, availableStock = 0 }: Produc
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="text-white font-bold text-lg">OUT OF STOCK</span>
           </div>
+        )}
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(product);
+            }}
+            className="absolute bottom-2 right-2 p-2 bg-background/90 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+            title="Edit product"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
         )}
       </div>
       <div className="p-4">
