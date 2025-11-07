@@ -33,6 +33,7 @@ export const SupplierManagement = () => {
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance";
+  const canDelete = role === "admin" || role === "super_admin";
 
   const fetchSuppliers = async () => {
     setIsLoading(true);
@@ -126,13 +127,15 @@ export const SupplierManagement = () => {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(supplier.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(supplier.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
