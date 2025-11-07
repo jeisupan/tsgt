@@ -37,24 +37,35 @@ export type Database = {
       }
       app_settings: {
         Row: {
+          account_id: string | null
           id: string
           logo_url: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          account_id?: string | null
           id?: string
           logo_url?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          account_id?: string | null
           id?: string
           logo_url?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {

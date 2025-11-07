@@ -23,19 +23,24 @@ export const LogoUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { role } = useUserRole();
+  const { role, accountId } = useUserRole();
 
   const canEdit = role === "admin" || role === "super_admin";
   const hasCustomLogo = customLogoUrl !== null;
 
   useEffect(() => {
-    fetchLogo();
-  }, []);
+    if (accountId) {
+      fetchLogo();
+    }
+  }, [accountId]);
 
   const fetchLogo = async () => {
+    if (!accountId) return;
+
     const { data, error } = await supabase
       .from("app_settings")
       .select("logo_url")
+      .eq("account_id", accountId)
       .limit(1)
       .maybeSingle();
 
@@ -93,9 +98,15 @@ export const LogoUpload = () => {
         .getPublicUrl(fileName);
 
       // Update database
+      if (!accountId) {
+        toast.error("Account ID not found");
+        return;
+      }
+
       const { data: settings } = await supabase
         .from("app_settings")
         .select("id")
+        .eq("account_id", accountId)
         .limit(1)
         .maybeSingle();
 
@@ -115,7 +126,8 @@ export const LogoUpload = () => {
           .from("app_settings")
           .insert({ 
             logo_url: publicUrl,
-            updated_by: user.id 
+            updated_by: user.id,
+            account_id: accountId
           });
 
         if (insertError) throw insertError;
@@ -145,9 +157,15 @@ export const LogoUpload = () => {
       }
 
       // Update database to remove logo URL
+      if (!accountId) {
+        toast.error("Account ID not found");
+        return;
+      }
+
       const { data: settings } = await supabase
         .from("app_settings")
         .select("id")
+        .eq("account_id", accountId)
         .limit(1)
         .maybeSingle();
 
