@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
+import { maskEmail, maskPhone, maskAddress } from "@/lib/utils";
 
 interface Supplier {
   id: string;
@@ -109,9 +110,9 @@ export const SupplierManagement = () => {
                 <TableRow key={supplier.id}>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>{supplier.tin_number || "-"}</TableCell>
-                  <TableCell>{supplier.email || "-"}</TableCell>
-                  <TableCell>{supplier.phone || "-"}</TableCell>
-                  <TableCell>{supplier.address || "-"}</TableCell>
+                  <TableCell>{maskEmail(supplier.email)}</TableCell>
+                  <TableCell>{maskPhone(supplier.phone)}</TableCell>
+                  <TableCell>{maskAddress(supplier.address)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button

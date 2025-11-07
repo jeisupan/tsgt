@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useUserRole } from "@/hooks/useUserRole";
+import { maskEmail, maskPhone, maskAddress } from "@/lib/utils";
 
 interface Customer {
   id: string;
@@ -163,9 +164,9 @@ export const CustomerManagement = () => {
               {customers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.name}</TableCell>
-                  {canViewSensitiveData && <TableCell>{customer.email || "-"}</TableCell>}
-                  {canViewSensitiveData && <TableCell>{customer.phone || "-"}</TableCell>}
-                  {canViewSensitiveData && <TableCell>{customer.address || "-"}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{maskEmail(customer.email)}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{maskPhone(customer.phone)}</TableCell>}
+                  {canViewSensitiveData && <TableCell>{maskAddress(customer.address)}</TableCell>}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -234,13 +235,13 @@ export const CustomerManagement = () => {
                     <span className="font-medium">Name:</span> {version.name}
                   </div>
                   <div>
-                    <span className="font-medium">Email:</span> {version.email || "-"}
+                    <span className="font-medium">Email:</span> {maskEmail(version.email)}
                   </div>
                   <div>
-                    <span className="font-medium">Phone:</span> {version.phone || "-"}
+                    <span className="font-medium">Phone:</span> {maskPhone(version.phone)}
                   </div>
                   <div className="col-span-2">
-                    <span className="font-medium">Address:</span> {version.address || "-"}
+                    <span className="font-medium">Address:</span> {maskAddress(version.address)}
                   </div>
                 </div>
               </div>
