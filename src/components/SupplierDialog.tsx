@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useUserRole } from "@/hooks/useUserRole";
+import { maskEmail, maskPhone, maskAddress, maskTin } from "@/lib/utils";
 
 const supplierSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -44,8 +45,9 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Inventory can edit suppliers and view all data
-  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance" || role === "inventory";
+  // Inventory can edit suppliers but sensitive fields are masked when editing existing
+  const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance" || (!editingSupplier && role === "inventory");
+  const isSensitiveFieldReadOnly = editingSupplier && role === "inventory";
 
   // Update form when editing supplier changes
   useEffect(() => {
@@ -78,9 +80,14 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
     try {
       if (editingSupplier) {
         // Update existing supplier
+        // For inventory role, only update the name field
+        const updateData = isSensitiveFieldReadOnly
+          ? { name: formData.name, account_id: accountId }
+          : { ...formData, account_id: accountId };
+          
         const { error } = await supabase
           .from("suppliers")
-          .update({ ...formData, account_id: accountId })
+          .update(updateData)
           .eq("id", editingSupplier.id);
 
         if (error) throw error;
@@ -124,9 +131,10 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
             <Label htmlFor="tin_number">TIN Number</Label>
             <Input
               id="tin_number"
-              value={formData.tin_number}
+              value={canViewSensitiveData || !editingSupplier ? formData.tin_number : maskTin(formData.tin_number)}
               onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
               placeholder="Enter TIN number"
+              readOnly={isSensitiveFieldReadOnly}
             />
           </div>
           <div className="space-y-2">
@@ -134,28 +142,31 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
             <Input
               id="email"
               type="email"
-              value={formData.email}
+              value={canViewSensitiveData || !editingSupplier ? formData.email : maskEmail(formData.email)}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="Enter email address"
+              readOnly={isSensitiveFieldReadOnly}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone</Label>
             <Input
               id="phone"
-              value={formData.phone}
+              value={canViewSensitiveData || !editingSupplier ? formData.phone : maskPhone(formData.phone)}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="Enter phone number"
+              readOnly={isSensitiveFieldReadOnly}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Address</Label>
             <Textarea
               id="address"
-              value={formData.address}
+              value={canViewSensitiveData || !editingSupplier ? formData.address : maskAddress(formData.address)}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               placeholder="Enter address"
               rows={3}
+              readOnly={isSensitiveFieldReadOnly}
             />
           </div>
           <div className="flex gap-2 justify-end">
