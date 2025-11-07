@@ -494,7 +494,7 @@ const Index = () => {
           </div>
           <div className="mt-4">
             <div className="flex flex-wrap gap-2">
-              {hasAccess(["sales", "admin", "super_admin"]) && (
+              {hasAccess(["sales", "admin"]) && role !== "super_admin" && (
                 <Button
                   variant={activeMenu === "pos" ? "default" : "outline"}
                   onClick={() => setActiveMenu("pos")}
@@ -505,7 +505,7 @@ const Index = () => {
                 </Button>
               )}
             
-              {hasAccess(["inventory", "finance", "admin", "super_admin"]) && (
+              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && (
                 <Button
                   variant={activeMenu === "inventory" ? "default" : "outline"}
                   onClick={() => setActiveMenu("inventory")}
@@ -516,7 +516,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["sales", "finance", "admin", "super_admin"]) && (
+              {hasAccess(["sales", "finance", "admin"]) && role !== "super_admin" && (
                 <Button
                   variant={activeMenu === "history" ? "default" : "outline"}
                   onClick={() => setActiveMenu("history")}
@@ -527,7 +527,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["sales", "admin", "super_admin"]) && (
+              {hasAccess(["sales", "admin"]) && role !== "super_admin" && (
                 <Button
                   variant={activeMenu === "customers" ? "default" : "outline"}
                   onClick={() => setActiveMenu("customers")}
@@ -538,7 +538,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "admin", "super_admin"]) && (
+              {hasAccess(["inventory", "admin"]) && role !== "super_admin" && (
                 <Button
                   variant={activeMenu === "suppliers" ? "default" : "outline"}
                   onClick={() => setActiveMenu("suppliers")}
@@ -549,7 +549,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "finance", "admin", "super_admin"]) && (
+              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && (
                 <Button
                   variant={activeMenu === "expenses" ? "default" : "outline"}
                   onClick={() => setActiveMenu("expenses")}
@@ -578,17 +578,17 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         {activeMenu === "users" ? (
           <UserManagement />
-        ) : activeMenu === "inventory" ? (
+        ) : activeMenu === "inventory" && role !== "super_admin" ? (
           <InventoryManagement />
-        ) : activeMenu === "history" ? (
+        ) : activeMenu === "history" && role !== "super_admin" ? (
           <OrderHistory />
-        ) : activeMenu === "customers" ? (
+        ) : activeMenu === "customers" && role !== "super_admin" ? (
           <CustomerManagement />
-        ) : activeMenu === "suppliers" ? (
+        ) : activeMenu === "suppliers" && role !== "super_admin" ? (
           <SupplierManagement />
-        ) : activeMenu === "expenses" ? (
+        ) : activeMenu === "expenses" && role !== "super_admin" ? (
           <OperationsExpense />
-        ) : activeMenu === "pos" && hasAccess(["sales", "admin", "super_admin"]) ? (
+        ) : activeMenu === "pos" && hasAccess(["sales", "admin"]) && role !== "super_admin" ? (
           <div className="grid lg:grid-cols-[1fr_400px] gap-8">
             <div className="space-y-6">
               <div className="flex items-center justify-between gap-4">
@@ -597,7 +597,7 @@ const Index = () => {
                   selectedCategory={selectedCategory}
                   onSelectCategory={setSelectedCategory}
                 />
-                {hasAccess(["sales", "admin", "super_admin"]) && (
+                {hasAccess(["sales", "admin"]) && (
                   <Button
                     variant="secondary"
                     onClick={() => setIsProductsModalOpen(true)}
@@ -616,7 +616,7 @@ const Index = () => {
                     product={product}
                     onAddToCart={handleAddToCart}
                     availableStock={inventory[product.id] || 0}
-                    onEdit={hasAccess(["sales", "admin", "super_admin"]) ? handleEditProduct : undefined}
+                    onEdit={hasAccess(["sales", "admin"]) ? handleEditProduct : undefined}
                   />
                 ))}
               </div>
@@ -635,7 +635,9 @@ const Index = () => {
           <div className="text-center p-8">
             <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
             <p className="text-muted-foreground">
-              Use the navigation buttons above to access your modules.
+              {role === "super_admin" 
+                ? "Use the Users button above to manage system users." 
+                : "Use the navigation buttons above to access your modules."}
             </p>
           </div>
         )}
