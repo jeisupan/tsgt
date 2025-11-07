@@ -235,12 +235,23 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
           </div>
           <div className="space-y-2">
             <Label htmlFor="image">Image</Label>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('image')?.click()}
+                className="w-full"
+              >
+                {imageFile ? imageFile.name : "Choose File"}
+              </Button>
+              <input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+            </div>
             {product?.image_url && !imageFile && (
               <p className="text-sm text-muted-foreground">Current image will be kept if no new file is selected</p>
             )}
