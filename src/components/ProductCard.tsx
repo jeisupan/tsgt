@@ -20,6 +20,7 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onAddToCart, availableStock = 0, onEdit }: ProductCardProps) => {
   const isOutOfStock = availableStock <= 0;
+  const isPlaceholder = product.image.includes('placeholder-upload');
   
   return (
     <Card className={`group cursor-pointer overflow-hidden border-border bg-card transition-all duration-300 hover:shadow-[var(--shadow-hover)] ${isOutOfStock ? 'opacity-60' : ''}`}>
@@ -30,7 +31,7 @@ export const ProductCard = ({ product, onAddToCart, availableStock = 0, onEdit }
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
         {isOutOfStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className={`absolute inset-0 bg-black/50 flex justify-center ${isPlaceholder ? 'items-end pb-8' : 'items-center'}`}>
             <span className="text-white font-bold text-lg">OUT OF STOCK</span>
           </div>
         )}
