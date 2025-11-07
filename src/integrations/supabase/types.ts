@@ -249,6 +249,7 @@ export type Database = {
       }
       inventory: {
         Row: {
+          account_id: string | null
           created_at: string
           current_stock: number
           id: string
@@ -259,6 +260,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           current_stock?: number
           id?: string
@@ -269,6 +271,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           current_stock?: number
           id?: string
@@ -278,7 +281,15 @@ export type Database = {
           product_name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inventory_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       operations_expense: {
         Row: {
@@ -467,6 +478,7 @@ export type Database = {
       }
       products: {
         Row: {
+          account_id: string | null
           category: string
           created_at: string
           id: string
@@ -476,6 +488,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           category: string
           created_at?: string
           id?: string
@@ -485,6 +498,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           category?: string
           created_at?: string
           id?: string
@@ -493,7 +507,15 @@ export type Database = {
           price?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

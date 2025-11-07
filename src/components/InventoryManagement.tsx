@@ -58,7 +58,7 @@ interface OutboundTransaction {
 }
 
 export const InventoryManagement = () => {
-  const { role, canEdit } = useUserRole();
+  const { role, canEdit, accountId } = useUserRole();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inboundHistory, setInboundHistory] = useState<InboundTransaction[]>([]);
   const [outboundHistory, setOutboundHistory] = useState<OutboundTransaction[]>([]);
@@ -316,6 +316,11 @@ export const InventoryManagement = () => {
         if (updateError) throw updateError;
       } else {
         // Create new inventory record
+        if (!accountId) {
+          toast.error("Account information not available");
+          return;
+        }
+
         const { error: insertError } = await supabase
           .from("inventory")
           .insert({
@@ -323,6 +328,7 @@ export const InventoryManagement = () => {
             product_name: product.name,
             product_category: product.category,
             current_stock: quantity,
+            account_id: accountId,
           });
 
         if (insertError) throw insertError;

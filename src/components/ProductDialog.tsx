@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { CategoryManagementDialog } from "./CategoryManagementDialog";
 import { Settings } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const productSchema = z.object({
   name: z.string()
@@ -52,6 +53,7 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
+  const { accountId } = useUserRole();
 
   useEffect(() => {
     if (open) {
@@ -165,9 +167,17 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
         if (error) throw error;
         toast.success("Product updated successfully");
       } else {
+        if (!accountId) {
+          toast.error("Account information not available");
+          return;
+        }
+
         const { error } = await supabase
           .from('products')
-          .insert(productData);
+          .insert({
+            ...productData,
+            account_id: accountId
+          });
 
         if (error) throw error;
         toast.success("Product added successfully");
