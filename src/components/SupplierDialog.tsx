@@ -46,6 +46,7 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
     tin_number: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
   // Inventory can edit suppliers but sensitive fields are masked initially when editing existing
   const canViewSensitiveData = role === "admin" || role === "super_admin" || role === "finance" || (!editingSupplier && role === "inventory");
@@ -61,8 +62,10 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
         address: editingSupplier.address || "",
         tin_number: editingSupplier.tin_number || "",
       });
+      setEditedFields(new Set());
     } else {
       setFormData({ name: "", email: "", phone: "", address: "", tin_number: "" });
+      setEditedFields(new Set());
     }
   }, [editingSupplier]);
 
@@ -82,9 +85,23 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
     try {
       if (editingSupplier) {
         // Update existing supplier
+        // For inventory role, only update fields that were actually edited
+        const updateData: any = { name: formData.name, account_id: accountId };
+        
+        if (showMaskedTooltip) {
+          // Only include sensitive fields if they were edited
+          if (editedFields.has('tin_number')) updateData.tin_number = formData.tin_number;
+          if (editedFields.has('email')) updateData.email = formData.email;
+          if (editedFields.has('phone')) updateData.phone = formData.phone;
+          if (editedFields.has('address')) updateData.address = formData.address;
+        } else {
+          // Admin/finance/super_admin can update all fields
+          Object.assign(updateData, formData);
+        }
+        
         const { error } = await supabase
           .from("suppliers")
-          .update({ ...formData, account_id: accountId })
+          .update(updateData)
           .eq("id", editingSupplier.id);
 
         if (error) throw error;
@@ -98,6 +115,7 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
       }
 
       setFormData({ name: "", email: "", phone: "", address: "", tin_number: "" });
+      setEditedFields(new Set());
       onSupplierAdded();
       onOpenChange(false);
     } catch (error) {
@@ -148,7 +166,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               <Input
                 id="tin_number"
                 value={canViewSensitiveData || !editingSupplier ? formData.tin_number : maskTin(formData.tin_number)}
-                onChange={(e) => setFormData({ ...formData, tin_number: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, tin_number: e.target.value });
+                  setEditedFields(new Set(editedFields).add('tin_number'));
+                }}
+                onFocus={(e) => {
+                  if (showMaskedTooltip && !editedFields.has('tin_number')) {
+                    e.target.value = '';
+                  }
+                }}
                 placeholder="Enter TIN number"
               />
             </div>
@@ -170,7 +196,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
                 id="email"
                 type="email"
                 value={canViewSensitiveData || !editingSupplier ? formData.email : maskEmail(formData.email)}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  setEditedFields(new Set(editedFields).add('email'));
+                }}
+                onFocus={(e) => {
+                  if (showMaskedTooltip && !editedFields.has('email')) {
+                    e.target.value = '';
+                  }
+                }}
                 placeholder="Enter email address"
               />
             </div>
@@ -191,7 +225,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               <Input
                 id="phone"
                 value={canViewSensitiveData || !editingSupplier ? formData.phone : maskPhone(formData.phone)}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value });
+                  setEditedFields(new Set(editedFields).add('phone'));
+                }}
+                onFocus={(e) => {
+                  if (showMaskedTooltip && !editedFields.has('phone')) {
+                    e.target.value = '';
+                  }
+                }}
                 placeholder="Enter phone number"
               />
             </div>
@@ -212,7 +254,15 @@ export const SupplierDialog = ({ open, onOpenChange, onSupplierAdded, editingSup
               <Textarea
                 id="address"
                 value={canViewSensitiveData || !editingSupplier ? formData.address : maskAddress(formData.address)}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, address: e.target.value });
+                  setEditedFields(new Set(editedFields).add('address'));
+                }}
+                onFocus={(e) => {
+                  if (showMaskedTooltip && !editedFields.has('address')) {
+                    e.target.value = '';
+                  }
+                }}
                 placeholder="Enter address"
                 rows={3}
               />
