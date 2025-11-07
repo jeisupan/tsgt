@@ -1,18 +1,32 @@
 import { useState, useEffect, useRef } from "react";
-import { Pencil, Upload } from "lucide-react";
+import { Pencil, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import kanjiLogo from "@/assets/kanji-logo.png";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const LogoUpload = () => {
   const [logoUrl, setLogoUrl] = useState<string>(kanjiLogo);
+  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { role } = useUserRole();
 
   const canEdit = role === "admin" || role === "super_admin";
+  const hasCustomLogo = customLogoUrl !== null;
 
   useEffect(() => {
     fetchLogo();
@@ -32,6 +46,10 @@ export const LogoUpload = () => {
 
     if (data?.logo_url) {
       setLogoUrl(data.logo_url);
+      setCustomLogoUrl(data.logo_url);
+    } else {
+      setLogoUrl(kanjiLogo);
+      setCustomLogoUrl(null);
     }
   };
 
@@ -104,6 +122,7 @@ export const LogoUpload = () => {
       }
 
       setLogoUrl(publicUrl);
+      setCustomLogoUrl(publicUrl);
       toast.success("Logo updated successfully");
     } catch (error) {
       console.error("Error uploading logo:", error);
@@ -116,6 +135,44 @@ export const LogoUpload = () => {
     }
   };
 
+  const handleDeleteLogo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to delete the logo");
+        return;
+      }
+
+      // Update database to remove logo URL
+      const { data: settings } = await supabase
+        .from("app_settings")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
+
+      if (settings) {
+        const { error: updateError } = await supabase
+          .from("app_settings")
+          .update({ 
+            logo_url: null,
+            updated_at: new Date().toISOString(),
+            updated_by: user.id 
+          })
+          .eq("id", settings.id);
+
+        if (updateError) throw updateError;
+      }
+
+      setLogoUrl(kanjiLogo);
+      setCustomLogoUrl(null);
+      setShowDeleteDialog(false);
+      toast.success("Logo deleted, reverted to default");
+    } catch (error) {
+      console.error("Error deleting logo:", error);
+      toast.error("Failed to delete logo");
+    }
+  };
+
   const handleClick = () => {
     if (canEdit && !isUploading) {
       fileInputRef.current?.click();
@@ -123,42 +180,75 @@ export const LogoUpload = () => {
   };
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div 
-        className={`p-1 rounded-lg bg-white shadow-sm ${canEdit ? 'cursor-pointer' : ''} transition-opacity`}
-        onClick={handleClick}
-      >
-        <img 
-          src={logoUrl} 
-          alt="Kanji AI Apps" 
-          className="h-28 w-28 object-contain" 
-        />
-        
-        {canEdit && isHovered && !isUploading && (
-          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-            <Pencil className="h-8 w-8 text-white" />
-          </div>
-        )}
+    <>
+      <div className="flex items-center gap-2">
+        <div
+          className="relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div 
+            className={`p-1 rounded-lg bg-white shadow-sm ${canEdit ? 'cursor-pointer' : ''} transition-opacity`}
+            onClick={handleClick}
+          >
+            <img 
+              src={logoUrl} 
+              alt="Kanji AI Apps" 
+              className="h-28 w-28 object-contain" 
+            />
+            
+            {canEdit && isHovered && !isUploading && (
+              <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                <Pencil className="h-8 w-8 text-white" />
+              </div>
+            )}
 
-        {isUploading && (
-          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-            <Upload className="h-8 w-8 text-white animate-pulse" />
+            {isUploading && (
+              <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                <Upload className="h-8 w-8 text-white animate-pulse" />
+              </div>
+            )}
           </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileSelect}
+            disabled={!canEdit || isUploading}
+          />
+        </div>
+
+        {canEdit && hasCustomLogo && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDeleteDialog(true)}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            title="Delete logo and revert to default"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         )}
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileSelect}
-        disabled={!canEdit || isUploading}
-      />
-    </div>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Custom Logo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the custom logo and revert to the default logo. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteLogo} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
