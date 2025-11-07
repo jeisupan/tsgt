@@ -11,7 +11,7 @@ import { SupplierManagement } from "@/components/SupplierManagement";
 import { OperationsExpense } from "@/components/OperationsExpense";
 import { ProductManagement } from "@/components/ProductManagement";
 import { ProductDialog } from "@/components/ProductDialog";
-import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag } from "lucide-react";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy } from "lucide-react";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -521,7 +521,21 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <div className="text-right hidden md:block">
                 {(role === "admin" || role === "super_admin") && accountId && (
-                  <p className="text-xs text-muted-foreground">Account: {accountId}</p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <p className="text-xs text-muted-foreground">
+                      Account: {accountId.substring(0, 9)}***
+                    </p>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(accountId);
+                        toast.success("Account ID copied to clipboard");
+                      }}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Copy Account ID"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </div>
                 )}
                 <span className="text-sm text-muted-foreground">{user?.email}</span>
               </div>
