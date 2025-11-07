@@ -61,6 +61,17 @@ export const UserProfileDialog = ({
   const handleSave = async () => {
     setLoading(true);
     try {
+      // Get the user's account_id first
+      const { data: userProfile, error: profileFetchError } = await supabase
+        .from("profiles")
+        .select("account_id")
+        .eq("id", userId)
+        .single();
+
+      if (profileFetchError) throw profileFetchError;
+
+      const userAccountId = userProfile?.account_id;
+
       // Compute full_name from first_name and last_name
       const full_name = `${firstName.trim()} ${lastName.trim()}`.trim();
       
@@ -85,11 +96,12 @@ export const UserProfileDialog = ({
 
       if (deleteError) throw deleteError;
 
-      // Then insert the new roles
+      // Then insert the new roles with account_id
       if (selectedRoles.length > 0) {
         const rolesToInsert = selectedRoles.map((role) => ({
           user_id: userId,
           role: role as any,
+          account_id: userAccountId,
         }));
 
         const { error: insertError } = await supabase
