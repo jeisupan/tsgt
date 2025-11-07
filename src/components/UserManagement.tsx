@@ -7,15 +7,23 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Shield, Settings } from "lucide-react";
 import { UserProfileDialog } from "./UserProfileDialog";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  account_id: string | null;
+}
+
+interface Account {
+  id: string;
+  account_name: string;
 }
 
 interface UserWithRoles extends Profile {
   roles: string[];
+  account_name?: string | null;
 }
 
 const roleColors: Record<string, string> = {
@@ -35,10 +43,13 @@ const roleLabels: Record<string, string> = {
 };
 
 export const UserManagement = () => {
+  const { role } = useUserRole();
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [isRolesDialogOpen, setIsRolesDialogOpen] = useState(false);
+
+  const isSuperAdmin = role === "super_admin";
 
   useEffect(() => {
     fetchUsers();
@@ -58,6 +69,21 @@ export const UserManagement = () => {
       return;
     }
 
+    // Fetch accounts if super_admin
+    let accountsMap: Record<string, string> = {};
+    if (isSuperAdmin) {
+      const { data: accounts, error: accountsError } = await supabase
+        .from("accounts")
+        .select("id, account_name");
+
+      if (!accountsError && accounts) {
+        accountsMap = accounts.reduce((acc, account) => {
+          acc[account.id] = account.account_name;
+          return acc;
+        }, {} as Record<string, string>);
+      }
+    }
+
     const { data: userRoles, error: rolesError } = await supabase
       .from("user_roles")
       .select("*");
@@ -71,6 +97,7 @@ export const UserManagement = () => {
       return {
         ...profile,
         roles,
+        account_name: profile.account_id ? accountsMap[profile.account_id] : null,
       };
     });
 
@@ -108,6 +135,7 @@ export const UserManagement = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
+                {isSuperAdmin && <TableHead>Account</TableHead>}
                 <TableHead>Roles</TableHead>
               </TableRow>
             </TableHeader>
@@ -128,6 +156,15 @@ export const UserManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{user.email}</TableCell>
+                  {isSuperAdmin && (
+                    <TableCell>
+                      {user.account_name ? (
+                        <Badge variant="outline">{user.account_name}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No Account</span>
+                      )}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {user.roles.length > 0 ? (
