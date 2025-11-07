@@ -82,13 +82,18 @@ export const UserManagement = () => {
     // Fetch accounts if super_admin
     let accountsMap: Record<string, string> = {};
     if (isSuperAdmin) {
+      console.log("Fetching accounts as super admin...");
       const { data: accountsData, error: accountsError } = await supabase
         .from("accounts")
         .select("id, account_name");
 
+      console.log("Accounts fetch result:", { accountsData, accountsError });
+
       if (accountsError) {
         console.error("Error fetching accounts:", accountsError);
+        toast.error("Failed to load accounts. Check permissions.");
       } else if (accountsData) {
+        console.log("Accounts data received:", accountsData);
         // Set accounts for filter dropdown
         setAccounts(accountsData);
         
@@ -96,7 +101,7 @@ export const UserManagement = () => {
           acc[account.id] = account.account_name;
           return acc;
         }, {} as Record<string, string>);
-        console.log("Accounts map:", accountsMap);
+        console.log("Accounts map created:", accountsMap);
       }
     }
 
