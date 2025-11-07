@@ -3,9 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { CategoryManagementDialog } from "./CategoryManagementDialog";
+import { Settings } from "lucide-react";
 
 const productSchema = z.object({
   name: z.string()
@@ -47,8 +50,14 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
 
   useEffect(() => {
+    if (open) {
+      fetchCategories();
+    }
+    
     if (product) {
       setFormData({
         name: product.name,
@@ -64,6 +73,17 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
       setImageFile(null);
     }
   }, [product, open]);
+
+  const fetchCategories = async () => {
+    const { data } = await supabase
+      .from("products")
+      .select("category");
+    
+    if (data) {
+      const uniqueCategories = [...new Set(data.map(p => p.category))].sort();
+      setCategories(uniqueCategories);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,14 +183,6 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
           <DialogTitle>{product ? "Edit Product" : "Add New Product"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {product && (
-            <div className="space-y-2">
-              <Label>Product ID</Label>
-              <div className="px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground">
-                {product.id}
-              </div>
-            </div>
-          )}
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
@@ -192,13 +204,35 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
+            <div className="flex items-center justify-between">
+              <Label htmlFor="category">Category</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsCategoryManagementOpen(true)}
+                className="h-8 gap-1"
+              >
+                <Settings className="h-4 w-4" />
+                Manage
+              </Button>
+            </div>
+            <Select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="image">Image</Label>
@@ -222,6 +256,12 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
           </div>
         </form>
       </DialogContent>
+
+      <CategoryManagementDialog
+        open={isCategoryManagementOpen}
+        onOpenChange={setIsCategoryManagementOpen}
+        onCategoriesUpdate={fetchCategories}
+      />
     </Dialog>
   );
 };
