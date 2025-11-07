@@ -181,56 +181,56 @@ export const LogoUpload = () => {
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <div
-          className="relative"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+      <div
+        className="relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div 
+          className={`p-1 rounded-lg bg-white shadow-sm ${canEdit ? 'cursor-pointer' : ''} transition-opacity`}
+          onClick={handleClick}
         >
-          <div 
-            className={`p-1 rounded-lg bg-white shadow-sm ${canEdit ? 'cursor-pointer' : ''} transition-opacity`}
-            onClick={handleClick}
-          >
-            <img 
-              src={logoUrl} 
-              alt="Kanji AI Apps" 
-              className="h-28 w-28 object-contain" 
-            />
-            
-            {canEdit && isHovered && !isUploading && (
-              <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                <Pencil className="h-8 w-8 text-white" />
-              </div>
-            )}
-
-            {isUploading && (
-              <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                <Upload className="h-8 w-8 text-white animate-pulse" />
-              </div>
-            )}
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileSelect}
-            disabled={!canEdit || isUploading}
+          <img 
+            src={logoUrl} 
+            alt="Kanji AI Apps" 
+            className="h-28 w-28 object-contain" 
           />
+          
+          {canEdit && isHovered && !isUploading && (
+            <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center gap-3">
+              <Pencil className="h-8 w-8 text-white" />
+              {hasCustomLogo && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteDialog(true);
+                  }}
+                  className="text-white hover:text-destructive hover:bg-white/20 h-10 w-10"
+                  title="Delete logo and revert to default"
+                >
+                  <Trash2 className="h-6 w-6" />
+                </Button>
+              )}
+            </div>
+          )}
+
+          {isUploading && (
+            <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+              <Upload className="h-8 w-8 text-white animate-pulse" />
+            </div>
+          )}
         </div>
 
-        {canEdit && hasCustomLogo && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            title="Delete logo and revert to default"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+          disabled={!canEdit || isUploading}
+        />
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
