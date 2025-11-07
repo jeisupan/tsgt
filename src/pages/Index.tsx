@@ -519,7 +519,12 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground hidden md:inline">{user?.email}</span>
+              <div className="text-right hidden md:block">
+                {(role === "admin" || role === "super_admin") && accountId && (
+                  <p className="text-xs text-muted-foreground">Account: {accountId}</p>
+                )}
+                <span className="text-sm text-muted-foreground">{user?.email}</span>
+              </div>
               <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
                 {role?.replace("_", " ").toUpperCase()}
               </span>
