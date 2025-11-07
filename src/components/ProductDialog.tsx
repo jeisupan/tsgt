@@ -204,17 +204,16 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
             />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
               <Label htmlFor="category">Category</Label>
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setIsCategoryManagementOpen(true)}
-                className="h-8 gap-1"
+                className="h-6 w-6"
               >
                 <Settings className="h-4 w-4" />
-                Manage
               </Button>
             </div>
             <Select
