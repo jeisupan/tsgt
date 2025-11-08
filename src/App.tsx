@@ -27,9 +27,9 @@ function App() {
           <Toaster />
           <Sonner />
           <Routes>
-            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/app" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Index />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
