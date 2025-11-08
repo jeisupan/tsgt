@@ -7,20 +7,23 @@ interface TierLimits {
   maxUsers: number;
   hasTransactionHistory: boolean;
   tierName: string;
+  historyDays: number | null;
 }
 
 const FREE_TIER_LIMITS: TierLimits = {
   maxProducts: 10,
   maxUsers: 1,
   hasTransactionHistory: false,
-  tierName: "Free Trial"
+  tierName: "Free Trial",
+  historyDays: null
 };
 
-const DEFAULT_LIMITS: TierLimits = {
+const GROWTH_TIER_LIMITS: TierLimits = {
   maxProducts: 100,
-  maxUsers: 10,
+  maxUsers: 3,
   hasTransactionHistory: true,
-  tierName: "Growth"
+  tierName: "Growth",
+  historyDays: 30
 };
 
 export const useSubscription = () => {
@@ -59,9 +62,11 @@ export const useSubscription = () => {
 
       if (!subscription || subscription.tier?.name === "Free Trial") {
         setTierLimits(FREE_TIER_LIMITS);
+      } else if (subscription.tier?.name === "Growth") {
+        setTierLimits(GROWTH_TIER_LIMITS);
       } else {
-        // For now, all other tiers get default limits
-        setTierLimits(DEFAULT_LIMITS);
+        // Professional and other tiers get unlimited features
+        setTierLimits(GROWTH_TIER_LIMITS);
       }
     } catch (error) {
       console.error("Error in fetchSubscription:", error);

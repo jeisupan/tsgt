@@ -62,10 +62,10 @@ export const OrderHistory = () => {
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.created_at);
     
-    // Free tier: only show orders from past 7 days
-    if (isFreeTier) {
-      const sevenDaysAgo = subDays(new Date(), 7);
-      if (orderDate < sevenDaysAgo) {
+    // Apply tier-based date filtering
+    if (tierLimits.historyDays) {
+      const cutoffDate = subDays(new Date(), tierLimits.historyDays);
+      if (orderDate < cutoffDate) {
         return false;
       }
     }
@@ -450,10 +450,12 @@ export const OrderHistory = () => {
           <h2 className="text-2xl font-bold text-foreground">Order History</h2>
         </div>
         
-        {isFreeTier && (
+        {tierLimits.historyDays && (
           <Alert>
             <AlertDescription>
-              Free tier: Showing orders from the past 7 days only. Upgrade for full history.
+              {tierLimits.tierName} tier: Showing orders from the past {tierLimits.historyDays} days only. 
+              {tierLimits.tierName === "Free Trial" && " Upgrade to Growth for 30-day history or Professional for full history."}
+              {tierLimits.tierName === "Growth" && " Upgrade to Professional for full history."}
             </AlertDescription>
           </Alert>
         )}

@@ -63,6 +63,7 @@ export const UserManagement = () => {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   const isSuperAdmin = role === "super_admin";
+  const isGrowthTier = tierLimits.tierName === "Growth";
 
   useEffect(() => {
     if (role) {
@@ -210,6 +211,15 @@ export const UserManagement = () => {
             </Alert>
           )}
           
+          {isGrowthTier && (
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Growth tier: All users have Admin permissions. Upgrade to Professional for role-based access control.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             {/* Account Filter - Left side */}
@@ -297,13 +307,13 @@ export const UserManagement = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 {isSuperAdmin && <TableHead>Account</TableHead>}
-                <TableHead>Roles</TableHead>
+                {!isGrowthTier && <TableHead>Roles</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isSuperAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={isSuperAdmin ? (isGrowthTier ? 3 : 4) : (isGrowthTier ? 2 : 3)} className="text-center text-muted-foreground py-8">
                     No users found matching your filters
                   </TableCell>
                 </TableRow>
@@ -333,19 +343,21 @@ export const UserManagement = () => {
                       )}
                     </TableCell>
                   )}
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap">
-                      {user.roles.length > 0 ? (
-                        user.roles.map((role) => (
-                          <Badge key={role} className={roleColors[role]}>
-                            {roleLabels[role]}
-                          </Badge>
-                        ))
-                      ) : (
-                        <Badge variant="outline">No Roles</Badge>
-                      )}
-                    </div>
-                  </TableCell>
+                  {!isGrowthTier && (
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {user.roles.length > 0 ? (
+                          user.roles.map((role) => (
+                            <Badge key={role} className={roleColors[role]}>
+                              {roleLabels[role]}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline">No Roles</Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
                 ))
               )}

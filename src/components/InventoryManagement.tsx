@@ -13,7 +13,7 @@ import { Package, TrendingUp, TrendingDown, AlertCircle, CalendarIcon, X, Downlo
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useSubscription } from "@/hooks/useSubscription";
-import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay, subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -164,37 +164,53 @@ export const InventoryManagement = () => {
   };
 
   // Filter functions
-  const filteredInboundHistory = inboundHistory.filter((transaction) => {
-    const transactionDate = new Date(transaction.created_at);
+  const filteredInboundHistory = inboundHistory.filter((txn) => {
+    const txnDate = new Date(txn.created_at);
+    
+    // Apply tier-based date filtering
+    if (tierLimits.historyDays) {
+      const cutoffDate = subDays(new Date(), tierLimits.historyDays);
+      if (txnDate < cutoffDate) {
+        return false;
+      }
+    }
     
     if (inboundFilterMode === "single" && inboundSingleDate) {
       const selectedDay = startOfDay(inboundSingleDate);
-      const transactionDay = startOfDay(transactionDate);
-      return transactionDay.getTime() === selectedDay.getTime();
+      const txnDay = startOfDay(txnDate);
+      return txnDay.getTime() === selectedDay.getTime();
     }
     
     if (inboundFilterMode === "range" && inboundDateRange?.from) {
       const from = startOfDay(inboundDateRange.from);
       const to = inboundDateRange.to ? endOfDay(inboundDateRange.to) : endOfDay(inboundDateRange.from);
-      return isWithinInterval(transactionDate, { start: from, end: to });
+      return isWithinInterval(txnDate, { start: from, end: to });
     }
     
     return true;
   });
 
-  const filteredOutboundHistory = outboundHistory.filter((transaction) => {
-    const transactionDate = new Date(transaction.created_at);
+  const filteredOutboundHistory = outboundHistory.filter((txn) => {
+    const txnDate = new Date(txn.created_at);
+    
+    // Apply tier-based date filtering
+    if (tierLimits.historyDays) {
+      const cutoffDate = subDays(new Date(), tierLimits.historyDays);
+      if (txnDate < cutoffDate) {
+        return false;
+      }
+    }
     
     if (outboundFilterMode === "single" && outboundSingleDate) {
       const selectedDay = startOfDay(outboundSingleDate);
-      const transactionDay = startOfDay(transactionDate);
-      return transactionDay.getTime() === selectedDay.getTime();
+      const txnDay = startOfDay(txnDate);
+      return txnDay.getTime() === selectedDay.getTime();
     }
     
     if (outboundFilterMode === "range" && outboundDateRange?.from) {
       const from = startOfDay(outboundDateRange.from);
       const to = outboundDateRange.to ? endOfDay(outboundDateRange.to) : endOfDay(outboundDateRange.from);
-      return isWithinInterval(transactionDate, { start: from, end: to });
+      return isWithinInterval(txnDate, { start: from, end: to });
     }
     
     return true;
@@ -564,6 +580,15 @@ export const InventoryManagement = () => {
               <div className="flex flex-col gap-4 mb-4">
                 <h3 className="text-xl font-semibold">Inbound History</h3>
               
+                {tierLimits.historyDays && (
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {tierLimits.tierName} tier: Showing transactions from the past {tierLimits.historyDays} days only.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                   <Button
@@ -795,6 +820,15 @@ export const InventoryManagement = () => {
             <Card className="p-6">
               <div className="flex flex-col gap-4 mb-4">
                 <h3 className="text-xl font-semibold">Outbound History</h3>
+              
+                {tierLimits.historyDays && (
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {tierLimits.tierName} tier: Showing transactions from the past {tierLimits.historyDays} days only.
+                    </AlertDescription>
+                  </Alert>
+                )}
               
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">

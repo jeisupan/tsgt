@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface UserProfileDialogProps {
   open: boolean;
@@ -41,14 +44,47 @@ export const UserProfileDialog = ({
   const [lastName, setLastName] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userAccountId, setUserAccountId] = useState<string | null>(null);
+  const { tierLimits } = useSubscription();
+  
+  // Check if the user's account is Growth tier
+  const [isGrowthTier, setIsGrowthTier] = useState(false);
 
   useEffect(() => {
     if (open) {
       setFirstName(currentFirstName || "");
       setLastName(currentLastName || "");
       setSelectedRoles(currentRoles);
+      fetchUserAccountTier();
     }
   }, [open, currentFirstName, currentLastName, currentRoles]);
+  
+  const fetchUserAccountTier = async () => {
+    try {
+      // Get user's account_id
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("account_id")
+        .eq("id", userId)
+        .single();
+      
+      if (profile?.account_id) {
+        setUserAccountId(profile.account_id);
+        
+        // Check subscription tier
+        const { data: subscription } = await supabase
+          .from("account_subscriptions")
+          .select("tier:pricing_tiers(name)")
+          .eq("account_id", profile.account_id)
+          .eq("status", "active")
+          .maybeSingle();
+        
+        setIsGrowthTier(subscription?.tier?.name === "Growth");
+      }
+    } catch (error) {
+      console.error("Error fetching account tier:", error);
+    }
+  };
 
   const handleToggleRole = (role: string) => {
     setSelectedRoles((prev) =>
@@ -61,16 +97,18 @@ export const UserProfileDialog = ({
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Get the user's account_id first
-      const { data: userProfile, error: profileFetchError } = await supabase
-        .from("profiles")
-        .select("account_id")
-        .eq("id", userId)
-        .single();
+      // Get the user's account_id if not already fetched
+      let accountId = userAccountId;
+      if (!accountId) {
+        const { data: userProfile, error: profileFetchError } = await supabase
+          .from("profiles")
+          .select("account_id")
+          .eq("id", userId)
+          .single();
 
-      if (profileFetchError) throw profileFetchError;
-
-      const userAccountId = userProfile?.account_id;
+        if (profileFetchError) throw profileFetchError;
+        accountId = userProfile?.account_id;
+      }
 
       // Compute full_name from first_name and last_name
       const full_name = `${firstName.trim()} ${lastName.trim()}`.trim();
@@ -87,7 +125,9 @@ export const UserProfileDialog = ({
 
       if (profileError) throw profileError;
 
-      // Update roles
+      // Update roles - For Growth tier, force admin role
+      const rolesToSave = isGrowthTier ? ["admin"] : selectedRoles;
+      
       // First, delete all existing roles for this user
       const { error: deleteError } = await supabase
         .from("user_roles")
@@ -97,11 +137,11 @@ export const UserProfileDialog = ({
       if (deleteError) throw deleteError;
 
       // Then insert the new roles with account_id
-      if (selectedRoles.length > 0) {
-        const rolesToInsert = selectedRoles.map((role) => ({
+      if (rolesToSave.length > 0) {
+        const rolesToInsert = rolesToSave.map((role) => ({
           user_id: userId,
           role: role as any,
-          account_id: userAccountId,
+          account_id: accountId,
         }));
 
         const { error: insertError } = await supabase
@@ -153,32 +193,41 @@ export const UserProfileDialog = ({
 
           <Separator />
 
-          <div className="space-y-2">
-            <Label className="text-base font-semibold">Roles</Label>
-            <div className="space-y-3">
-              {availableRoles.map((role) => (
-                <div key={role.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={role.value}
-                    checked={selectedRoles.includes(role.value)}
-                    onCheckedChange={() => handleToggleRole(role.value)}
-                  />
-                  <Label
-                    htmlFor={role.value}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {role.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
+          {isGrowthTier ? (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Growth tier: All users are assigned Admin role by default.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">Roles</Label>
+              <div className="space-y-3">
+                {availableRoles.map((role) => (
+                  <div key={role.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={role.value}
+                      checked={selectedRoles.includes(role.value)}
+                      onCheckedChange={() => handleToggleRole(role.value)}
+                    />
+                    <Label
+                      htmlFor={role.value}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {role.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
 
-            {selectedRoles.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Note: User will have no roles assigned
-              </p>
-            )}
-          </div>
+              {selectedRoles.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Note: User will have no roles assigned
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter>

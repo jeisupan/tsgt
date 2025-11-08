@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { ShoppingCart, Trash2, Plus, Minus, UserPlus, Check, ChevronsUpDown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { ShoppingCart, Trash2, Plus, Minus, UserPlus, Check, ChevronsUpDown, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +11,7 @@ import { CustomerDialog } from "@/components/CustomerDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export interface CartItem {
   id: string;
@@ -34,11 +35,20 @@ interface CartProps {
 export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) => {
   const { tierLimits } = useSubscription();
   const isFreeTier = tierLimits.tierName === "Free Trial";
+  const isGrowthTier = tierLimits.tierName === "Growth";
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState<string>("");
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // For Growth tier, limit to first 100 products
+  const displayItems = useMemo(() => {
+    if (isGrowthTier && items.length > 100) {
+      return items.slice(0, 100);
+    }
+    return items;
+  }, [items, isGrowthTier]);
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const subtotal = total / 1.12; // Price without VAT (VAT is already included in price)
@@ -92,7 +102,15 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
           </div>
         ) : (
           <div className="space-y-4">
-            {items.map((item) => (
+            {isGrowthTier && items.length > 100 && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Growth tier: Showing first 100 products only. Upgrade to Professional for unlimited products.
+                </AlertDescription>
+              </Alert>
+            )}
+            {displayItems.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
