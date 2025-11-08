@@ -12,7 +12,8 @@ import { OperationsExpense } from "@/components/OperationsExpense";
 import { ProductManagement } from "@/components/ProductManagement";
 import { ProductDialog } from "@/components/ProductDialog";
 import InventoryInsights from "@/components/InventoryInsights";
-import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy, Lightbulb } from "lucide-react";
+import { PricingTierManagement } from "@/components/PricingTierManagement";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy, Lightbulb, DollarSign } from "lucide-react";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -515,7 +516,7 @@ const Index = () => {
               <LogoUpload />
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Business Management System
+                  BusinessHub
                 </h1>
                 <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
               </div>
@@ -650,6 +651,17 @@ const Index = () => {
                   Audit Logs
                 </Button>
               )}
+              
+              {hasAccess(["super_admin"]) && (
+                <Button
+                  variant={activeMenu === "pricing" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("pricing")}
+                  className="gap-2"
+                >
+                  <DollarSign className="h-5 w-5" />
+                  Pricing Tiers
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -660,6 +672,8 @@ const Index = () => {
           <UserManagement />
         ) : activeMenu === "audit" ? (
           <AuditLogs />
+        ) : activeMenu === "pricing" && role === "super_admin" ? (
+          <PricingTierManagement />
         ) : activeMenu === "insights" && role === "super_admin" ? (
           <InventoryInsights />
         ) : activeMenu === "inventory" && role !== "super_admin" ? (

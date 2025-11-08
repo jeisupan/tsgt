@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Store, 
   Users, 
@@ -17,6 +19,33 @@ import {
 
 const Landing = () => {
   const navigate = useNavigate();
+
+  // Fetch pricing tiers from database
+  const { data: tiersData } = useQuery({
+    queryKey: ['pricing-tiers'],
+    queryFn: async () => {
+      const { data: tiers, error: tiersError } = await supabase
+        .from('pricing_tiers')
+        .select('*')
+        .order('sort_order');
+      
+      if (tiersError) throw tiersError;
+
+      const { data: features, error: featuresError } = await supabase
+        .from('tier_features')
+        .select('*')
+        .order('sort_order');
+      
+      if (featuresError) throw featuresError;
+
+      return tiers.map(tier => ({
+        ...tier,
+        features: features
+          .filter(f => f.tier_id === tier.id)
+          .map(f => f.feature_name)
+      }));
+    }
+  });
 
   const features = [
     {
@@ -51,7 +80,7 @@ const Landing = () => {
     }
   ];
 
-  const tiers = [
+  const defaultTiers = [
     {
       name: "Starter",
       price: "₱999",
@@ -65,7 +94,7 @@ const Landing = () => {
         "Basic reports",
         "Email support"
       ],
-      popular: false
+      is_popular: false
     },
     {
       name: "Professional",
@@ -81,7 +110,7 @@ const Landing = () => {
         "Advanced analytics",
         "Priority support"
       ],
-      popular: true
+      is_popular: true
     },
     {
       name: "Enterprise",
@@ -97,9 +126,11 @@ const Landing = () => {
         "API access",
         "Dedicated support"
       ],
-      popular: false
+      is_popular: false
     }
   ];
+
+  const tiers = tiersData || defaultTiers;
 
   const benefits = [
     {
@@ -228,9 +259,9 @@ const Landing = () => {
             {tiers.map((tier, index) => (
               <Card 
                 key={index} 
-                className={`relative ${tier.popular ? 'border-primary shadow-primary' : ''}`}
+                className={`relative ${tier.is_popular ? 'border-primary shadow-primary' : ''}`}
               >
-                {tier.popular && (
+                {tier.is_popular && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
                     Most Popular
                   </Badge>
@@ -254,7 +285,7 @@ const Landing = () => {
                   </ul>
                   <Button 
                     className="w-full mt-6" 
-                    variant={tier.popular ? "hero" : "outline"}
+                    variant={tier.is_popular ? "hero" : "outline"}
                     onClick={() => navigate("/auth")}
                   >
                     Get Started

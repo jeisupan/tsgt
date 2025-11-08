@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_subscriptions: {
+        Row: {
+          account_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          status: string
+          tier_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          tier_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_subscriptions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: true
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           account_name: string
@@ -605,6 +647,42 @@ export type Database = {
           },
         ]
       }
+      pricing_tiers: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_popular: boolean
+          name: string
+          period: string
+          price: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_popular?: boolean
+          name: string
+          period?: string
+          price: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_popular?: boolean
+          name?: string
+          period?: string
+          price?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           account_id: string | null
@@ -750,6 +828,38 @@ export type Database = {
             columns: ["replaced_by"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tier_features: {
+        Row: {
+          created_at: string
+          feature_name: string
+          id: string
+          sort_order: number
+          tier_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_name: string
+          id?: string
+          sort_order?: number
+          tier_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_name?: string
+          id?: string
+          sort_order?: number
+          tier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tier_features_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_tiers"
             referencedColumns: ["id"]
           },
         ]
