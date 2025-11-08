@@ -60,25 +60,27 @@ export const AccountSubscriptions = () => {
     try {
       setLoading(true);
 
-      // Fetch accounts with subscriptions
+      // Fetch accounts
       const { data: accountsData, error: accountsError } = await supabase
         .from("accounts")
-        .select(`
-          id,
-          account_name,
-          created_at,
-          account_subscriptions (
-            status,
-            expires_at,
-            pricing_tiers (
-              name,
-              price
-            )
-          )
-        `)
+        .select("id, account_name, created_at")
         .order("created_at", { ascending: false });
 
       if (accountsError) throw accountsError;
+
+      // Fetch all subscriptions
+      const { data: subscriptionsData, error: subscriptionsError } = await supabase
+        .from("account_subscriptions")
+        .select("account_id, status, expires_at, tier_id");
+
+      if (subscriptionsError) throw subscriptionsError;
+
+      // Fetch all tiers
+      const { data: tiersData, error: tiersError } = await supabase
+        .from("pricing_tiers")
+        .select("id, name, price");
+
+      if (tiersError) throw tiersError;
 
       // Fetch user counts
       const { data: userCounts, error: userCountsError } = await supabase
@@ -94,7 +96,17 @@ export const AccountSubscriptions = () => {
 
       if (productCountsError) throw productCountsError;
 
-      // Count users per account
+      // Create maps
+      const subscriptionMap: Record<string, any> = {};
+      subscriptionsData?.forEach((sub: any) => {
+        subscriptionMap[sub.account_id] = sub;
+      });
+
+      const tierMap: Record<string, any> = {};
+      tiersData?.forEach((tier: any) => {
+        tierMap[tier.id] = tier;
+      });
+
       const userCountMap: Record<string, number> = {};
       userCounts?.forEach((profile: any) => {
         if (profile.account_id) {
@@ -102,7 +114,6 @@ export const AccountSubscriptions = () => {
         }
       });
 
-      // Count products per account
       const productCountMap: Record<string, number> = {};
       productCounts?.forEach((product: any) => {
         if (product.account_id) {
@@ -112,8 +123,8 @@ export const AccountSubscriptions = () => {
 
       // Combine data
       const combinedData: AccountSubscription[] = accountsData?.map((account: any) => {
-        const subscription = account.account_subscriptions?.[0];
-        const tier = subscription?.pricing_tiers;
+        const subscription = subscriptionMap[account.id];
+        const tier = subscription ? tierMap[subscription.tier_id] : null;
 
         return {
           id: account.id,
