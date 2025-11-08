@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { History, Receipt, Pencil, Trash2, CalendarIcon, X, Download } from "lucide-react";
-import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay, subDays } from "date-fns";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 import { z } from "zod";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import * as XLSX from "xlsx";
 
 const orderItemSchema = z.object({
@@ -41,6 +43,8 @@ interface OrderItem {
 
 export const OrderHistory = () => {
   const { role, canEdit, accountId } = useUserRole();
+  const { tierLimits } = useSubscription();
+  const isFreeTier = tierLimits.tierName === "Free Trial";
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -57,6 +61,14 @@ export const OrderHistory = () => {
 
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.created_at);
+    
+    // Free tier: only show orders from past 7 days
+    if (isFreeTier) {
+      const sevenDaysAgo = subDays(new Date(), 7);
+      if (orderDate < sevenDaysAgo) {
+        return false;
+      }
+    }
     
     if (filterMode === "single" && singleDate) {
       const selectedDay = startOfDay(singleDate);
@@ -437,6 +449,14 @@ export const OrderHistory = () => {
           <History className="h-6 w-6 text-primary" />
           <h2 className="text-2xl font-bold text-foreground">Order History</h2>
         </div>
+        
+        {isFreeTier && (
+          <Alert>
+            <AlertDescription>
+              Free tier: Showing orders from the past 7 days only. Upgrade for full history.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">

@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CustomerDialog } from "@/components/CustomerDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export interface CartItem {
   id: string;
@@ -31,6 +32,8 @@ interface CartProps {
 }
 
 export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) => {
+  const { tierLimits } = useSubscription();
+  const isFreeTier = tierLimits.tierName === "Free Trial";
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState<string>("");
@@ -198,18 +201,20 @@ export const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: Cart
               </Button>
             </div>
           </div>
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              Invoice / OR Number (Optional)
-            </label>
-            <input
-              type="text"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="Enter invoice or OR number"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+          {!isFreeTier && (
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Invoice / OR Number (Optional)
+              </label>
+              <input
+                type="text"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                placeholder="Enter invoice or OR number"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          )}
           <Separator />
           <div className="flex justify-between text-muted-foreground">
             <span>Subtotal (excl. VAT)</span>

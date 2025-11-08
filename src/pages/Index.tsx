@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAutoLogout } from "@/hooks/useAutoLogout";
+import { useSubscription } from "@/hooks/useSubscription";
 import { UserManagement } from "@/components/UserManagement";
 import { AuditLogs } from "@/components/AuditLogs";
 import { AccountSubscriptions } from "@/components/AccountSubscriptions";
@@ -107,6 +108,8 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { role, loading: roleLoading, hasAccess, accountId } = useUserRole();
+  const { tierLimits } = useSubscription();
+  const isFreeTier = tierLimits.tierName === "Free Trial";
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activeMenu, setActiveMenu] = useState<string>("");
@@ -587,7 +590,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["sales", "admin"]) && role !== "super_admin" && (
+              {hasAccess(["sales", "admin"]) && role !== "super_admin" && !isFreeTier && (
                 <Button
                   variant={activeMenu === "customers" ? "default" : "outline"}
                   onClick={() => setActiveMenu("customers")}
@@ -598,7 +601,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "admin"]) && role !== "super_admin" && (
+              {hasAccess(["inventory", "admin"]) && role !== "super_admin" && !isFreeTier && (
                 <Button
                   variant={activeMenu === "suppliers" ? "default" : "outline"}
                   onClick={() => setActiveMenu("suppliers")}
@@ -609,7 +612,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && (
+              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && !isFreeTier && (
                 <Button
                   variant={activeMenu === "expenses" ? "default" : "outline"}
                   onClick={() => setActiveMenu("expenses")}
