@@ -51,6 +51,56 @@ const Landing = () => {
     }
   ];
 
+  const tiers = [
+    {
+      name: "Starter",
+      price: "₱999",
+      period: "/month",
+      description: "Perfect for small businesses getting started",
+      features: [
+        "Up to 100 products",
+        "Basic POS system",
+        "Customer management",
+        "Order history",
+        "Basic reports",
+        "Email support"
+      ],
+      popular: false
+    },
+    {
+      name: "Professional",
+      price: "₱2,499",
+      period: "/month",
+      description: "Growing businesses with advanced needs",
+      features: [
+        "Unlimited products",
+        "Advanced POS features",
+        "Inventory tracking",
+        "Supplier management",
+        "Multi-user support",
+        "Advanced analytics",
+        "Priority support"
+      ],
+      popular: true
+    },
+    {
+      name: "Enterprise",
+      price: "₱4,999",
+      period: "/month",
+      description: "Full-featured for large operations",
+      features: [
+        "Everything in Professional",
+        "AI-powered insights",
+        "Custom reports",
+        "Expense tracking",
+        "Audit logs",
+        "API access",
+        "Dedicated support"
+      ],
+      popular: false
+    }
+  ];
+
   const benefits = [
     {
       title: "Increase Efficiency",
@@ -81,6 +131,9 @@ const Landing = () => {
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Features
+            </a>
+            <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Pricing
             </a>
             <a href="#benefits" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Benefits
@@ -160,8 +213,61 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Choose the plan that fits your business needs. All plans include core features.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {tiers.map((tier, index) => (
+              <Card 
+                key={index} 
+                className={`relative ${tier.popular ? 'border-primary shadow-primary' : ''}`}
+              >
+                {tier.popular && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
+                    Most Popular
+                  </Badge>
+                )}
+                <CardHeader>
+                  <CardTitle className="text-2xl">{tier.name}</CardTitle>
+                  <CardDescription>{tier.description}</CardDescription>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">{tier.price}</span>
+                    <span className="text-muted-foreground">{tier.period}</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {tier.features.map((feature, fIndex) => (
+                      <li key={fIndex} className="flex items-center gap-2">
+                        <Check className="h-5 w-5 text-success shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className="w-full mt-6" 
+                    variant={tier.popular ? "hero" : "outline"}
+                    onClick={() => navigate("/auth")}
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Benefits Section */}
-      <section id="benefits" className="py-20">
+      <section id="benefits" className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
