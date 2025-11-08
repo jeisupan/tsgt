@@ -13,7 +13,7 @@ import { ProductManagement } from "@/components/ProductManagement";
 import { ProductDialog } from "@/components/ProductDialog";
 import InventoryInsights from "@/components/InventoryInsights";
 import { PricingTierManagement } from "@/components/PricingTierManagement";
-import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy, Lightbulb, DollarSign } from "lucide-react";
+import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy, Lightbulb, DollarSign, Building2 } from "lucide-react";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,6 +23,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useAutoLogout } from "@/hooks/useAutoLogout";
 import { UserManagement } from "@/components/UserManagement";
 import { AuditLogs } from "@/components/AuditLogs";
+import { AccountSubscriptions } from "@/components/AccountSubscriptions";
 import gasCylinderLarge from "@/assets/gas-cylinder-large.jpg";
 import gasCylinderMedium from "@/assets/gas-cylinder-medium.jpg";
 import gasCylinderSmall from "@/assets/gas-cylinder-small.jpg";
@@ -662,6 +663,17 @@ const Index = () => {
                   Pricing Tiers
                 </Button>
               )}
+              
+              {hasAccess(["super_admin"]) && (
+                <Button
+                  variant={activeMenu === "accounts" ? "default" : "outline"}
+                  onClick={() => setActiveMenu("accounts")}
+                  className="gap-2"
+                >
+                  <Building2 className="h-5 w-5" />
+                  Accounts
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -674,6 +686,8 @@ const Index = () => {
           <AuditLogs />
         ) : activeMenu === "pricing" && role === "super_admin" ? (
           <PricingTierManagement />
+        ) : activeMenu === "accounts" && role === "super_admin" ? (
+          <AccountSubscriptions />
         ) : activeMenu === "insights" && role === "super_admin" ? (
           <InventoryInsights />
         ) : activeMenu === "inventory" && role !== "super_admin" ? (
