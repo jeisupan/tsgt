@@ -525,7 +525,7 @@ const Index = () => {
                     Pinoy Business Hub
                   </h1>
                   <Badge variant="secondary" className="text-xs">
-                    {tierLimits.tierName}
+                    {tierLimits.tierName} Tier
                   </Badge>
                 </div>
                 <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
