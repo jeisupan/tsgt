@@ -601,7 +601,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "admin"]) && role !== "super_admin" && !isFreeTier && (
+              {hasAccess(["inventory", "admin"]) && role !== "super_admin" && tierLimits.tierName !== "Free Trial" && tierLimits.tierName !== "Growth" && (
                 <Button
                   variant={activeMenu === "suppliers" ? "default" : "outline"}
                   onClick={() => setActiveMenu("suppliers")}
@@ -612,7 +612,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && !isFreeTier && (
+              {hasAccess(["inventory", "finance", "admin"]) && role !== "super_admin" && tierLimits.tierName !== "Free Trial" && tierLimits.tierName !== "Growth" && (
                 <Button
                   variant={activeMenu === "expenses" ? "default" : "outline"}
                   onClick={() => setActiveMenu("expenses")}
