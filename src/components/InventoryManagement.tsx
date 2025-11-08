@@ -429,10 +429,10 @@ export const InventoryManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid w-full ${canAdjustStock && tierLimits.hasTransactionHistory ? 'grid-cols-3' : canAdjustStock ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        <TabsList className={`grid w-full ${canAdjustStock ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {canAdjustStock && <TabsTrigger value="inventory">Current Stock</TabsTrigger>}
-          {tierLimits.hasTransactionHistory && <TabsTrigger value="inbound">Inbound</TabsTrigger>}
-          {tierLimits.hasTransactionHistory && <TabsTrigger value="outbound">Outbound</TabsTrigger>}
+          <TabsTrigger value="inbound">Inbound</TabsTrigger>
+          <TabsTrigger value="outbound">Outbound</TabsTrigger>
         </TabsList>
 
         {canAdjustStock && (
@@ -441,7 +441,7 @@ export const InventoryManagement = () => {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Transaction history (Inbound/Outbound) is available in Growth and Professional tiers. Upgrade to track your inventory movements.
+                You can add inbound and outbound transactions, but history tracking is available only in Growth and Professional tiers. Upgrade to view your transaction history.
               </AlertDescription>
             </Alert>
           )}
@@ -479,7 +479,6 @@ export const InventoryManagement = () => {
         </TabsContent>
         )}
 
-        {tierLimits.hasTransactionHistory && (
         <TabsContent value="inbound" className="space-y-4">
           {canAdjustStock && (
             <Card className="p-6">
@@ -560,9 +559,10 @@ export const InventoryManagement = () => {
             </Card>
           )}
 
-          <Card className="p-6">
-            <div className="flex flex-col gap-4 mb-4">
-              <h3 className="text-xl font-semibold">Inbound History</h3>
+          {tierLimits.hasTransactionHistory && (
+            <Card className="p-6">
+              <div className="flex flex-col gap-4 mb-4">
+                <h3 className="text-xl font-semibold">Inbound History</h3>
               
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
@@ -708,10 +708,9 @@ export const InventoryManagement = () => {
               )}
             </div>
           </Card>
+          )}
         </TabsContent>
-        )}
 
-        {tierLimits.hasTransactionHistory && (
         <TabsContent value="outbound" className="space-y-4">
           {canAdjustStock && (
             <Card className="p-6">
@@ -792,9 +791,10 @@ export const InventoryManagement = () => {
             </Card>
           )}
 
-          <Card className="p-6">
-            <div className="flex flex-col gap-4 mb-4">
-              <h3 className="text-xl font-semibold">Outbound History</h3>
+          {tierLimits.hasTransactionHistory && (
+            <Card className="p-6">
+              <div className="flex flex-col gap-4 mb-4">
+                <h3 className="text-xl font-semibold">Outbound History</h3>
               
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
@@ -940,8 +940,8 @@ export const InventoryManagement = () => {
               )}
             </div>
           </Card>
+          )}
         </TabsContent>
-        )}
       </Tabs>
     </div>
   );
