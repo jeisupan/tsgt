@@ -157,7 +157,7 @@ const Landing = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Store className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">BusinessHub</span>
+            <span className="font-bold text-xl">Pinoy Business Hub</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -302,7 +302,7 @@ const Landing = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Choose BusinessHub?
+              Why Choose Pinoy Business Hub?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Built for businesses that want to grow and scale efficiently
@@ -375,7 +375,7 @@ const Landing = () => {
             Ready to Transform Your Business?
           </h2>
           <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-            Join businesses already using BusinessHub to streamline their operations and boost efficiency
+            Join businesses already using Pinoy Business Hub to streamline their operations and boost efficiency
           </p>
           <Button 
             size="lg" 
@@ -394,10 +394,10 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
               <Store className="h-5 w-5 text-primary" />
-              <span className="font-semibold">BusinessHub</span>
+              <span className="font-semibold">Pinoy Business Hub</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 BusinessHub. Built for Modern Businesses.
+              © 2025 Pinoy Business Hub. Built for Modern Businesses.
             </p>
           </div>
         </div>
