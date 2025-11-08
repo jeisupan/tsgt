@@ -634,7 +634,7 @@ const Index = () => {
                 </Button>
               )}
               
-              {hasAccess(["super_admin", "admin"]) && (
+              {hasAccess(["super_admin", "admin"]) && (role === "super_admin" || !isFreeTier) && (
                 <Button
                   variant={activeMenu === "users" ? "default" : "outline"}
                   onClick={() => setActiveMenu("users")}
