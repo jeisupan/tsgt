@@ -36,6 +36,7 @@ export const AccountSubscriptions = () => {
 
     fetchAccountSubscriptions();
 
+    // Listen to all relevant table changes
     const channel = supabase
       .channel("account-subscriptions-changes")
       .on(
@@ -44,6 +45,50 @@ export const AccountSubscriptions = () => {
           event: "*",
           schema: "public",
           table: "account_subscriptions",
+        },
+        () => {
+          fetchAccountSubscriptions();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "accounts",
+        },
+        () => {
+          fetchAccountSubscriptions();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "pricing_tiers",
+        },
+        () => {
+          fetchAccountSubscriptions();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+        },
+        () => {
+          fetchAccountSubscriptions();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "products",
         },
         () => {
           fetchAccountSubscriptions();
@@ -66,35 +111,58 @@ export const AccountSubscriptions = () => {
         .select("id, account_name, created_at")
         .order("created_at", { ascending: false });
 
-      if (accountsError) throw accountsError;
+      if (accountsError) {
+        console.error("Error fetching accounts:", accountsError);
+        throw accountsError;
+      }
 
       // Fetch all subscriptions
       const { data: subscriptionsData, error: subscriptionsError } = await supabase
         .from("account_subscriptions")
         .select("account_id, status, expires_at, tier_id");
 
-      if (subscriptionsError) throw subscriptionsError;
+      if (subscriptionsError) {
+        console.error("Error fetching subscriptions:", subscriptionsError);
+        throw subscriptionsError;
+      }
 
       // Fetch all tiers
       const { data: tiersData, error: tiersError } = await supabase
         .from("pricing_tiers")
         .select("id, name, price");
 
-      if (tiersError) throw tiersError;
+      if (tiersError) {
+        console.error("Error fetching tiers:", tiersError);
+        throw tiersError;
+      }
 
       // Fetch user counts
       const { data: userCounts, error: userCountsError } = await supabase
         .from("profiles")
         .select("account_id");
 
-      if (userCountsError) throw userCountsError;
+      if (userCountsError) {
+        console.error("Error fetching user counts:", userCountsError);
+        throw userCountsError;
+      }
 
       // Fetch product counts
       const { data: productCounts, error: productCountsError } = await supabase
         .from("products")
         .select("account_id");
 
-      if (productCountsError) throw productCountsError;
+      if (productCountsError) {
+        console.error("Error fetching product counts:", productCountsError);
+        throw productCountsError;
+      }
+
+      console.log("Fetched data:", {
+        accounts: accountsData?.length,
+        subscriptions: subscriptionsData?.length,
+        tiers: tiersData?.length,
+        users: userCounts?.length,
+        products: productCounts?.length
+      });
 
       // Create maps
       const subscriptionMap: Record<string, any> = {};
@@ -126,7 +194,7 @@ export const AccountSubscriptions = () => {
         const subscription = subscriptionMap[account.id];
         const tier = subscription ? tierMap[subscription.tier_id] : null;
 
-        return {
+        const result = {
           id: account.id,
           account_name: account.account_name,
           tier_name: tier?.name || null,
@@ -137,8 +205,19 @@ export const AccountSubscriptions = () => {
           user_count: userCountMap[account.id] || 0,
           product_count: productCountMap[account.id] || 0,
         };
+
+        console.log("Account mapping:", {
+          account_name: account.account_name,
+          has_subscription: !!subscription,
+          tier_id: subscription?.tier_id,
+          tier_name: tier?.name,
+          result
+        });
+
+        return result;
       }) || [];
 
+      console.log("Combined data:", combinedData);
       setSubscriptions(combinedData);
     } catch (error) {
       console.error("Error fetching account subscriptions:", error);
