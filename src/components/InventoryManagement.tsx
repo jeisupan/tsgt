@@ -12,9 +12,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Package, TrendingUp, TrendingDown, AlertCircle, CalendarIcon, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import * as XLSX from "xlsx";
 
 interface ProductFromDB {
@@ -59,6 +61,7 @@ interface OutboundTransaction {
 
 export const InventoryManagement = () => {
   const { role, canEdit, accountId } = useUserRole();
+  const { tierLimits } = useSubscription();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inboundHistory, setInboundHistory] = useState<InboundTransaction[]>([]);
   const [outboundHistory, setOutboundHistory] = useState<OutboundTransaction[]>([]);
@@ -426,14 +429,22 @@ export const InventoryManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid w-full ${canAdjustStock ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <TabsList className={`grid w-full ${canAdjustStock && tierLimits.hasTransactionHistory ? 'grid-cols-3' : canAdjustStock ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {canAdjustStock && <TabsTrigger value="inventory">Current Stock</TabsTrigger>}
-          <TabsTrigger value="inbound">Inbound</TabsTrigger>
-          <TabsTrigger value="outbound">Outbound</TabsTrigger>
+          {tierLimits.hasTransactionHistory && <TabsTrigger value="inbound">Inbound</TabsTrigger>}
+          {tierLimits.hasTransactionHistory && <TabsTrigger value="outbound">Outbound</TabsTrigger>}
         </TabsList>
 
         {canAdjustStock && (
           <TabsContent value="inventory" className="space-y-4">
+          {!tierLimits.hasTransactionHistory && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Transaction history (Inbound/Outbound) is available in Growth and Professional tiers. Upgrade to track your inventory movements.
+              </AlertDescription>
+            </Alert>
+          )}
           <Card className="p-6">
             <h3 className="text-xl font-semibold mb-4">Current Inventory Levels</h3>
             {loading ? (
@@ -468,6 +479,7 @@ export const InventoryManagement = () => {
         </TabsContent>
         )}
 
+        {tierLimits.hasTransactionHistory && (
         <TabsContent value="inbound" className="space-y-4">
           {canAdjustStock && (
             <Card className="p-6">
@@ -697,7 +709,9 @@ export const InventoryManagement = () => {
             </div>
           </Card>
         </TabsContent>
+        )}
 
+        {tierLimits.hasTransactionHistory && (
         <TabsContent value="outbound" className="space-y-4">
           {canAdjustStock && (
             <Card className="p-6">
@@ -927,6 +941,7 @@ export const InventoryManagement = () => {
             </div>
           </Card>
         </TabsContent>
+        )}
       </Tabs>
     </div>
   );

@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
@@ -137,6 +139,34 @@ const Auth = () => {
         toast.error("Account ID is required. Please contact your administrator.");
         setLoading(false);
         return;
+      }
+
+      // Check user limit for non-business signups
+      if (!isBusinessSignup && accountId.trim()) {
+        // Check subscription tier and user count for the account
+        const { data: subscription } = await supabase
+          .from("account_subscriptions")
+          .select(`
+            *,
+            tier:pricing_tiers(name)
+          `)
+          .eq("account_id", accountId.trim())
+          .eq("status", "active")
+          .maybeSingle();
+
+        // If Free Trial tier, check user count
+        if (subscription?.tier?.name === "Free Trial") {
+          const { count: userCount } = await supabase
+            .from("profiles")
+            .select("*", { count: "exact", head: true })
+            .eq("account_id", accountId.trim());
+
+          if (userCount && userCount >= 1) {
+            toast.error("This account has reached the Free tier limit of 1 user. Please ask your administrator to upgrade.");
+            setLoading(false);
+            return;
+          }
+        }
       }
 
       // Validate password strength

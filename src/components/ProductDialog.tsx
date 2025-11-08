@@ -10,6 +10,7 @@ import { z } from "zod";
 import { CategoryManagementDialog } from "./CategoryManagementDialog";
 import { Settings } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const productSchema = z.object({
   name: z.string()
@@ -44,6 +45,7 @@ interface ProductDialogProps {
 }
 
 export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: ProductDialogProps) => {
+  const { canAddProduct, tierLimits, refreshCounts } = useSubscription();
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -95,6 +97,12 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check product limit for new products
+    if (!product && !canAddProduct) {
+      toast.error(`Free tier allows maximum ${tierLimits.maxProducts} products. Upgrade to add more.`);
+      return;
+    }
 
     // Validate image file if provided
     if (imageFile) {
@@ -185,6 +193,7 @@ export const ProductDialog = ({ open, onOpenChange, product, onSuccess }: Produc
 
       // Force immediate multiple refreshes to ensure visibility
       onSuccess();
+      refreshCounts();
       
       // Stagger refreshes to catch DB propagation
       setTimeout(() => onSuccess(), 50);

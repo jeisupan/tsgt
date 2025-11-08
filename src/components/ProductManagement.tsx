@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProductDialog } from "./ProductDialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +29,7 @@ interface Product {
 }
 
 export const ProductManagement = () => {
+  const { canAddProduct, getProductLimitMessage, tierLimits, refreshCounts } = useSubscription();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -118,6 +121,10 @@ export const ProductManagement = () => {
   };
 
   const handleAdd = () => {
+    if (!canAddProduct) {
+      toast.error(`Free tier allows maximum ${tierLimits.maxProducts} products. Upgrade to add more.`);
+      return;
+    }
     setSelectedProduct(null);
     setDialogOpen(true);
   };
@@ -151,6 +158,7 @@ export const ProductManagement = () => {
       setProductToDelete(null);
       // Force immediate refresh
       await fetchProducts();
+      refreshCounts();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete product");
     }
@@ -165,12 +173,23 @@ export const ProductManagement = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Product Management</CardTitle>
-          <Button onClick={handleAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Product
-          </Button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">{getProductLimitMessage()}</span>
+            <Button onClick={handleAdd} disabled={!canAddProduct}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
+          {!canAddProduct && (
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Free tier allows maximum {tierLimits.maxProducts} products. Upgrade to Growth or Professional tier to add more products.
+              </AlertDescription>
+            </Alert>
+          )}
           <Table>
             <TableHeader>
               <TableRow>

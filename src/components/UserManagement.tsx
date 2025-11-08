@@ -5,10 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Shield, Settings, Search, Check, ChevronsUpDown } from "lucide-react";
+import { Shield, Settings, Search, Check, ChevronsUpDown, AlertCircle } from "lucide-react";
 import { UserProfileDialog } from "./UserProfileDialog";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -50,6 +52,7 @@ const roleLabels: Record<string, string> = {
 
 export const UserManagement = () => {
   const { role } = useUserRole();
+  const { canAddUser, tierLimits, userCount } = useSubscription();
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
@@ -188,9 +191,25 @@ export const UserManagement = () => {
             <Shield className="h-5 w-5" />
             User Management
           </CardTitle>
-          <CardDescription>Manage user access and roles for registered users</CardDescription>
+          <CardDescription>
+            Manage user access and roles for registered users
+            {!canAddUser && (
+              <span className="block mt-2 text-sm">
+                ({userCount} of {tierLimits.maxUsers} users)
+              </span>
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent>
+          {!canAddUser && (
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Free tier supports {tierLimits.maxUsers} user. Upgrade to Growth tier for multi-user access (up to 3 users).
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             {/* Account Filter - Left side */}
