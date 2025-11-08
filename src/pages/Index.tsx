@@ -14,6 +14,7 @@ import { ProductDialog } from "@/components/ProductDialog";
 import InventoryInsights from "@/components/InventoryInsights";
 import { PricingTierManagement } from "@/components/PricingTierManagement";
 import { Fuel, Receipt, Package, Users, Truck, FileText, LogOut, Shield, ShoppingBag, Copy, Lightbulb, DollarSign, Building2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { LogoUpload } from "@/components/LogoUpload";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -519,9 +520,14 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <LogoUpload />
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Pinoy Business Hub
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Pinoy Business Hub
+                  </h1>
+                  <Badge variant="secondary" className="text-xs">
+                    {tierLimits.tierName}
+                  </Badge>
+                </div>
                 <p className="text-muted-foreground mt-1">Manage sales, inventory, and expenses in one place.</p>
               </div>
             </div>
