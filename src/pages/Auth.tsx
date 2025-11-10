@@ -100,7 +100,7 @@ const Auth = () => {
         toast.error(error.message);
       } else {
         toast.success("Logged in successfully!");
-        navigate("/");
+        navigate("/app");
       }
     } catch (error) {
       toast.error("An error occurred during login");
@@ -177,7 +177,7 @@ const Auth = () => {
         return;
       }
 
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/app`;
       
       const { error, data } = await supabase.auth.signUp({
         email,
