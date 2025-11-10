@@ -11,7 +11,7 @@ import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
-import kanjiLogo from "@/assets/kanji-new-logo.jpg";
+import asensoOsLogo from "@/assets/asenso-os-logo.png";
 
 const passwordSchema = z.string()
   .min(12, "Password must be at least 12 characters")
@@ -302,8 +302,8 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <div className="p-2 rounded-lg bg-white shadow-sm w-full">
               <img 
-                src={kanjiLogo} 
-                alt="Business Logo" 
+                src={asensoOsLogo} 
+                alt="AsensoOS Logo" 
                 className="h-44 w-full object-contain" 
               />
             </div>
