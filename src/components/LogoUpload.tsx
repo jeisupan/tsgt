@@ -3,7 +3,7 @@ import { Pencil, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
-import kanjiLogo from "@/assets/kanji-default-logo.jpg";
+import asensoOsLogo from "@/assets/asenso-os-logo.png";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const LogoUpload = () => {
-  const [logoUrl, setLogoUrl] = useState<string>(kanjiLogo);
+  const [logoUrl, setLogoUrl] = useState<string>(asensoOsLogo);
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -53,7 +53,7 @@ export const LogoUpload = () => {
       setLogoUrl(data.logo_url);
       setCustomLogoUrl(data.logo_url);
     } else {
-      setLogoUrl(kanjiLogo);
+      setLogoUrl(asensoOsLogo);
       setCustomLogoUrl(null);
     }
   };
@@ -182,7 +182,7 @@ export const LogoUpload = () => {
         if (updateError) throw updateError;
       }
 
-      setLogoUrl(kanjiLogo);
+      setLogoUrl(asensoOsLogo);
       setCustomLogoUrl(null);
       setShowDeleteDialog(false);
       toast.success("Logo deleted, reverted to default");
@@ -210,7 +210,7 @@ export const LogoUpload = () => {
         >
           <img 
             src={logoUrl} 
-            alt="Kanji AI Apps" 
+            alt="AsensoOS" 
             className="h-28 w-28 object-contain rounded-lg" 
           />
           
