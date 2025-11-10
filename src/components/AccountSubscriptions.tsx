@@ -19,6 +19,7 @@ interface AccountSubscription {
   account_created_at: string;
   user_count: number;
   product_count: number;
+  is_super_admin_account: boolean;
 }
 
 export const AccountSubscriptions = () => {
@@ -156,6 +157,17 @@ export const AccountSubscriptions = () => {
         throw productCountsError;
       }
 
+      // Fetch super admin users
+      const { data: superAdmins, error: superAdminsError } = await supabase
+        .from("user_roles")
+        .select("user_id, account_id")
+        .eq("role", "super_admin");
+
+      if (superAdminsError) {
+        console.error("Error fetching super admins:", superAdminsError);
+        throw superAdminsError;
+      }
+
       console.log("Fetched data:", {
         accounts: accountsData?.length,
         subscriptions: subscriptionsData?.length,
@@ -189,10 +201,19 @@ export const AccountSubscriptions = () => {
         }
       });
 
+      // Create super admin account set
+      const superAdminAccountIds = new Set<string>();
+      superAdmins?.forEach((admin: any) => {
+        if (admin.account_id) {
+          superAdminAccountIds.add(admin.account_id);
+        }
+      });
+
       // Combine data
       const combinedData: AccountSubscription[] = accountsData?.map((account: any) => {
         const subscription = subscriptionMap[account.id];
         const tier = subscription ? tierMap[subscription.tier_id] : null;
+        const isSuperAdminAccount = superAdminAccountIds.has(account.id);
 
         const result = {
           id: account.id,
@@ -204,6 +225,7 @@ export const AccountSubscriptions = () => {
           account_created_at: account.created_at,
           user_count: userCountMap[account.id] || 0,
           product_count: productCountMap[account.id] || 0,
+          is_super_admin_account: isSuperAdminAccount,
         };
 
         console.log("Account mapping:", {
@@ -327,7 +349,11 @@ export const AccountSubscriptions = () => {
                   <TableRow key={sub.id}>
                     <TableCell className="font-medium">{sub.account_name}</TableCell>
                     <TableCell>
-                      {sub.tier_name ? (
+                      {sub.is_super_admin_account ? (
+                        <Badge variant="default" className="bg-primary">
+                          App Owner
+                        </Badge>
+                      ) : sub.tier_name ? (
                         <Badge variant={getTierBadgeVariant(sub.tier_name)}>
                           {sub.tier_name}
                         </Badge>
